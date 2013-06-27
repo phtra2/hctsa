@@ -59,7 +59,7 @@ fprintf(1,'Clearing %u %s from %s',length(vin),thewhat,dbname);
 
 %% Check what to clear
 SelectString = sprintf('SELECT %s FROM %s WHERE %s IN (%s)',thename,thetable,theid,bencat(vin,','));
-[todump,qrf,rs,emsg] = mysql_dbquery(dbc,SelectString);
+[todump,~,~,emsg] = mysql_dbquery(dbc,SelectString);
 
 if ~isempty(emsg)
 	error(sprintf('Error retrieving selected %s indices (%s) from the %s table of %s',thewhat,theid,thetable,dbname))
