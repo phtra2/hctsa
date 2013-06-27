@@ -237,9 +237,9 @@ case 'ts' % Prepare toadd cell for time series
     
 case 'mops' % Prepare toadd cell for master operations
     for j = 1:nits
-        master(j).MasterCode = datain{j,1};
+        master(j).Code = datain{j,1};
         master(j).MasterLabel = datain{j,2};
-        toadd{j} = sprintf('(''%s'', ''%s'')',esc(master(j).MasterLabel),esc(master(j).MasterCode));
+        toadd{j} = sprintf('(''%s'', ''%s'')',esc(master(j).MasterLabel),esc(master(j).Code));
     end
     
 case 'ops' % Prepare toadd cell for operations        
@@ -312,10 +312,10 @@ if ~strcmp(importwhat,'mops')
     end
     switch importwhat
     case 'ts'
-        [rs,emsg] = mysql_dbexecute(dbc,sprintf(['INSERT INTO Results (ts_id,m_id) SELECT t.ts_id,o.m_id FROM TimeSeries t' ...
+        [~,emsg] = mysql_dbexecute(dbc,sprintf(['INSERT INTO Results (ts_id,m_id) SELECT t.ts_id,o.m_id FROM TimeSeries t' ...
                                 ' CROSS JOIN Operations o ON t.ts_id > %u'],maxid));
     case 'ops'
-        [rs,emsg] = mysql_dbexecute(dbc,sprintf(['INSERT INTO Results (ts_id,m_id) SELECT t.ts_id,o.m_id FROM TimeSeries t' ...
+        [~,emsg] = mysql_dbexecute(dbc,sprintf(['INSERT INTO Results (ts_id,m_id) SELECT t.ts_id,o.m_id FROM TimeSeries t' ...
                                 ' CROSS JOIN Operations o ON o.m_id > %u'],maxid));
     end
     if ~isempty(emsg),
@@ -323,12 +323,26 @@ if ~strcmp(importwhat,'mops')
         fprintf(1,'%s\n',emsg);
         keyboard
     else
-        if bevocal, fprintf(1,' initialized in %s!!\n',benrighttime(toc(resultstic))); end
+        if bevocal, fprintf(1,' initialized in %s!!\n',benrighttime(toc(resultstic),1)); end
     end
 end
 
-if ~strcmp(importwhat,'mops')
-    % Update the keywords table
+if strcmp(importwhat,'mops')
+    % Update the OperationCode table
+    fprintf(1,'Updating the OperationCode table\n')
+    allcode = cell(nits,1);
+    for i = 1:nits
+        allcode{i} = regexp(master(i).Code,'(');
+    end
+    allcode = unique(allcode); % unique code files in this import
+    
+    % Check for duplicates
+    [qrc,~,~,emsg] = mysql_dbquery(dbc,'SELECT CodeName FROM OperationCode');
+    code_db = qrc{1};
+    
+    
+else
+    % Update the timeseries/operations keywords table
     fprintf(1,'Updating the %s table in %s...',thektable,dbname)
 
     % First find unique keywords from new time series by splitting against commas
