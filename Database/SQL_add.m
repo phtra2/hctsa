@@ -18,7 +18,8 @@ function SQL_add(importwhat, INPfile, dbname, bevocal)
 
 % importwhat
 if nargin < 1 || isempty(importwhat) || ~ismember(importwhat,{'ops','ts','mops'})
-    error('Error setting first input argument -- should be ''ts'' for TimeSeries or ''ops'' for Operations');
+    error(['Error setting first input argument -- should be ''ts'' for TimeSeries, ' ...
+                    '''ops'' for Operations, or ''mops'' for MasterOperations']);
 end
 
 % inpfilename
@@ -86,7 +87,7 @@ case 'ts' % Read the time series input file:
 	datain = textscan(fid,'%s %s','CommentStyle','%','CollectOutput',1); % 'HeaderLines',1,
 case 'ops' % Read the operations input file:
     if bevocal
-        fprintf(1,'Need to format %s (Operations input file) as: OperationName OperationCode OperationKeywords\n',INPfile)
+        fprintf(1,'Need to format %s (Operations input file) as: Name LinkingCode Keywords\n',INPfile)
         fprintf(1,'Assuming no header lines\n')
         fprintf(1,'Use whitespace as a delimiter and \\n for new lines...\n')
         fprintf(1,'(Be careful that no additional whitespace is in any fields...)\n')
@@ -254,7 +255,6 @@ case 'ops' % Prepare toadd cell for operations
             operation(j).MasterLabel = strtok(operation(j).Code,'.');
             toadd{j} = sprintf('(''%s'', ''%s'',''%s'',''%s'')',esc(operation(j).Name),esc(operation(j).Code),esc(operation(j).MasterLabel),esc(operation(j).Keywords));
         end
-        
     end
 end
 if bevocal, fprintf(1,'done.\n'); end
@@ -289,8 +289,11 @@ end
 
 % Select the maximum id already in the table
 maxid = mysql_dbquery(dbc,sprintf('SELECT MAX(%s) FROM %s',theid,thetable));
-maxid = maxid{1}; % the maximum id -- the new items will have ids greater than this
-if isempty(maxid), maxid = 0; end
+if isempty(maxid)
+    maxid = 0;
+else
+    maxid = maxid{1}; % the maximum id -- the new items will have ids greater than this
+end
 
 % Assemble and execute the INSERT queries
 fprintf('Adding %u new %s to the %s table in %s...',sum(~isduplicate),thewhat,thetable,dbname)
@@ -329,18 +332,34 @@ end
 
 if strcmp(importwhat,'mops')
     % Update the OperationCode table
-    fprintf(1,'Updating the OperationCode table\n')
+    fprintf(1,'Updating the OperationCode table...')
     allcode = cell(nits,1);
     for i = 1:nits
-        allcode{i} = regexp(master(i).Code,'(');
+        twoparts = regexp(master(i).Code,'\(','split');
+        allcode{i} = twoparts{1}; % the code portion
     end
     allcode = unique(allcode); % unique code files in this import
+    ncode = length(allcode);
     
     % Check for duplicates
-    [qrc,~,~,emsg] = mysql_dbquery(dbc,'SELECT CodeName FROM OperationCode');
-    code_db = qrc{1};
-    
-    
+    [code_db,~,~,emsg] = mysql_dbquery(dbc,'SELECT CodeName FROM OperationCode');
+    if isempty(code_db)
+        isduplicate = zeros(ncode,1); % empty => no duplicates
+    else
+        code_db = code_db{1};
+    end
+    isduplicate = ismember(allcode,code_db); % check whether already exist in database
+    if ~all(isduplicate)
+        % Insert non-duplicates into table
+        toadd = cell(ncode,1); % add strings to insert into the OperationCode Table
+        for j = 1:ncode
+            if ~isduplicate(j)
+                toadd{j} = sprintf('(''%s'')',esc(allcode{j}));
+            end
+        end
+        SQL_add_chunked(dbc,'INSERT INTO OperationCode (CodeName) VALUES',toadd,isduplicate);
+    end
+    fprintf(1,' done.\n')
 else
     % Update the timeseries/operations keywords table
     fprintf(1,'Updating the %s table in %s...',thektable,dbname)
@@ -416,7 +435,7 @@ else
     for i = 1:nits
         for j = 1:length(kwsplit{i})
             addcell{ii} = sprintf('(%u,%u)',ourids(i),ourkids(strcmp(kwsplit{i}{j},ukws)));
-            ii = ii+1;
+            ii = ii + 1;
         end
     end
     SQL_add_chunked(dbc,sprintf('INSERT INTO %s (%s,%s) VALUES',thereltable,theid,thekid),addcell); % add them all in chunks
@@ -488,9 +507,9 @@ if ismember(importwhat,{'mops','ops'}) % there may be new links
                             'm JOIN Operations o ON m.MasterLabel = o.MasterLabel'];
     [~,emsg] = mysql_dbexecute(dbc,InsertString);
     if isempty(emsg)
-        fprintf(' done\n');
+        fprintf(' done.\n');
     else
-        fprintf(1,' shit. Error joining the MasterOperations and Operations tables:\n');
+        fprintf(1,' Oops! Error joining the MasterOperations and Operations tables:\n');
         fprintf(1,'%s\n',emsg); keyboard
     end
     
