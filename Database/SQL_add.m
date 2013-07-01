@@ -289,7 +289,7 @@ end
 
 % Select the maximum id already in the table
 maxid = mysql_dbquery(dbc,sprintf('SELECT MAX(%s) FROM %s',theid,thetable));
-if isempty(maxid)
+if isempty(maxid) || isempty(maxid{1})
     maxid = 0;
 else
     maxid = maxid{1}; % the maximum id -- the new items will have ids greater than this
