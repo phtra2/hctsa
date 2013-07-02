@@ -354,10 +354,10 @@ if strcmp(importwhat,'mops')
         toadd = cell(ncode,1); % add strings to insert into the OperationCode Table
         for j = 1:ncode
             if ~isduplicate(j)
-                toadd{j} = sprintf('(''%s'')',esc(allcode{j}));
+                toadd{j} = sprintf('(''%s'',0,0)',esc(allcode{j})); % if added here, then not subsidiary
             end
         end
-        SQL_add_chunked(dbc,'INSERT INTO OperationCode (CodeName) VALUES',toadd,isduplicate);
+        SQL_add_chunked(dbc,'INSERT INTO OperationCode (CodeName, IsSubsidiary, fdepDone) VALUES',toadd,isduplicate);
     end
     fprintf(1,' done.\n')
 else
@@ -495,7 +495,7 @@ else
     %         fprintf(1,'\n Error updating keyword count in %s',thektable)
     %     end
     % end
-    fprintf(1,'done\n')
+    fprintf(1,'done.\n')
 end
 
 % Update master/operation links

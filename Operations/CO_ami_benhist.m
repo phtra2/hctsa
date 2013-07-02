@@ -10,7 +10,10 @@ function out = CO_ami_benhist(y,tau,meth,nbins)
 % Ben Fulcher, September 2009
 
 
-if strcmp(tau,'tau'), tau = CO_fzcac(y); end
+if strcmp(tau,'tau')
+    % set tau to be the first zero-crossing of the autocorrlation function
+    tau = CO_fzcac(y);
+end
 
 % 1) Form the temporally-delayed vectors y1 and y2
 y1 = y(1:end-tau);

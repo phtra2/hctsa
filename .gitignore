@@ -33,4 +33,4 @@ sql_settings.conf
 
 # Random shit
 plugininstall_*.m
-error.log
+*.log
