@@ -6,13 +6,15 @@ function SQL_create_all_tables()
 
 % Specify the names of tables to create (should be valid names in SQL_TableCreateString)
 TableNames = {'Operations', ...     % Operations Table
-        'OperationCode', ...        % OperationCode Table
-        'OperationCodeLinks', ...   % OperationCodeLinks Table
         'MasterOperations', ...     % MasterOperations Table
         'MasterPointerRelate', ...  % MasterPointerRelate Table
-        'TimeSeries', ...           % TimeSeries Table
+        'OperationCode', ...        % OperationCode Table
+        'OperationCodeLinks', ...   % OperationCodeLinks Table
+        'CodeSource', ...           % CodeSource Table
+        'CodeSourceLink', ...       % CodeSourceLink Table
         'OperationKeywords', ...    % OperationKeywords Table
         'OpKeywordsRelate', ...     % OpKeywordsRelate Table
+        'TimeSeries', ...           % TimeSeries Table
         'TimeSeriesKeywords', ...   % TimeSeriesKeywords
         'TsKeywordsRelate', ...     % TsKeywordsRelate Table
         'Results'};                 % Results Table

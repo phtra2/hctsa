@@ -305,7 +305,7 @@ case 'ops' % Add operations to the Operations table
 case 'mops'
     SQL_add_chunked(dbc,'INSERT INTO MasterOperations (MasterLabel, MasterCode) VALUES',toadd,isduplicate);
 end
-fprintf(1,' Done!\n')
+fprintf(1,' done.\n')
 
 % Add new entries to the Results table where the TIMESERIES (ts_id) doesn't already exist
 if ~strcmp(importwhat,'mops')
