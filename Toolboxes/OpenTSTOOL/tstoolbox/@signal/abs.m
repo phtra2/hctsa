@@ -4,7 +4,7 @@ function rs = abs(s)
 %   Syntax:
 %     * abs(s)
 %
-%   Take absolut value of all data values of signal s. If sample values
+%   Take absolute value of all data values of signal s. If sample values
 %   are complex, abs(s) returns the complex modulus (magnitude) of each
 %   sample.
 %
@@ -14,3 +14,5 @@ error(nargchk(1,1, nargin));
 rs = signal(core(abs(data(s))), s);	
 rs = addhistory(rs, ['Absolut values']);
 rs = addcommandlines(rs, 's = abs(s');
+
+end

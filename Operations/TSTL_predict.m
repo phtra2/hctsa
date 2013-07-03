@@ -21,36 +21,38 @@ function out = TSTL_predict(y, plen, NNR, stepsize, pmode, embedparams)
 % input...?
 % adapted by Ben Fulcher November 2009
 
-%% Foreplay
 
+doplot = 0;
+
+%% Foreplay
 N = length(y);
 
 % (*) Prediction length, plen (the length of the output time series)
-if nargin<2 || isempty(plen)
+if nargin < 2 || isempty(plen)
     plen = 1; % output the same length (proportion)
 end
 % (proportion set after embedding, as the embedding will lose points
 % according to the dimension of the space)
 
 % (*) number of neighest neighbours, NNR
-if nargin<3 || isempty(NNR)
+if nargin < 3 || isempty(NNR)
     NNR = 1; % use 1 nearest neighbour
 end
 
 % (*) stepsize (in samples)
-if nargin<4 || isempty(stepsize)
+if nargin < 4 || isempty(stepsize)
     stepsize = 2;
 end
 
 % (*) prediction mode, pmode:
-if nargin<5 || isempty(pmode)
+if nargin < 5 || isempty(pmode)
     pmode = 0; % output vectors are means of the images of nearest neighbours
 end
 
 % (*) embedparams
-if nargin<6 || isempty(embedparams)
-    embedparams={'ac','cao'};
-    disp('using default embedding using autocorrelation and cao')
+if nargin < 6 || isempty(embedparams)
+    embedparams = {'ac','cao'};
+    fprintf(1,'Using default embedding using autocorrelation and cao\n')
 end
 
 
@@ -60,37 +62,36 @@ end
 % dim = embedpn(2);
 if iscell(embedparams)
     s = benembed(y,embedparams{1},embedparams{2},1);
-elseif embedparams==0
+elseif embedparams == 0
     s = signal(y);
 end
+% convert the time series to a signal class for use with TSTOOL methods
 
 if ~strcmp(class(s),'signal')
     out = NaN; return
 end
 
 Ns = length(data(s));
-if Ns<50
-    keyboard
+if Ns < 50
+    error('too short')
 end
 y = y(1:Ns); % for statistical purposes...
-if plen>0 && plen<=1
+if plen > 0 && plen <= 1
     plen = floor(plen*Ns); % specify a proportion of the time series length
 end
 
 %% Run the code
-try
-    rs = predict(s, plen, NNR, stepsize, pmode);
-catch
-    keyboard
-end
+% have to call TSTOOLpredict because predict is now a built-in Matlab function
+rs = TSTOOLpredict(s, plen, NNR, stepsize, pmode);
 
-y_pred = data(rs);
+y_pred = data(rs); % convert signal back to vector data
 y_pred1 = y_pred(:,1); % for this embedding dimension (?)
-% hold off; plot(y,'k'), hold on; plot(y_pred1,'m'), hold off;
 
-% keyboard
-
-% view(rs);
+if doplot % plot the output
+    figure('color','w')
+    hold off; plot(y,'k'), hold on; plot(y_pred1,'m'), hold off;
+    view(rs);
+end
 
 %% Compare the output to the properties of the true time series
 
@@ -166,7 +167,6 @@ out.fracres05 = sum(abs(res)<0.5)/Nlag;
 % near a real point in the time series
 % this could be done using the closest neighbour of the simulation to the
 % real time series
-
 
 
 % Could compare different dimensions rather than just the first... find the

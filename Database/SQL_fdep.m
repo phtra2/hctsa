@@ -67,6 +67,7 @@ for i = 1:nfiles
     catch
         fdepworked(i) = 0;
         fprintf(1,'Error running fdep on %s\n',filenames{i});
+        continue
     end
         
     toolboxnow = p.toolbox(cellfun(@(x)any(x==1),p.modbix));

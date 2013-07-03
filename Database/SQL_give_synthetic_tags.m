@@ -20,5 +20,6 @@ for i = 1:nts
         disp(['Error updating ' num2str(alltsids(i))])
     end
 end
+
 SQL_closedatabase(dbc)
 disp('Database closed, IsSynthetic column in the TimeSeries table updated ///');
