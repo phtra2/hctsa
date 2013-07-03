@@ -219,7 +219,7 @@ case 'ts' % Prepare toadd cell for time series
             timeseries(j).Data = xtext;
 
         catch emsg
-            fprintf(1,'%s\n',emsg)
+            fprintf(1,'%s\n',emsg.message)
             error(sprintf(['Could not read the data file for ''%s''.' ...
                                     'Check that it''s in Matlab''s path.'],timeseries(j).Filename))
         end
@@ -229,7 +229,7 @@ case 'ts' % Prepare toadd cell for time series
             nsubplots = min(nits,5);
             subplot(nsubplots,1,mod(j-1,nsubplots)+1);
             plot(x,'-k'); xlim([1,length(x)]);
-            titletext = sprintf('[%u/%u] %s (%u), keywords = %s --- read',j,nits,timeseries(j).Filename,timeseries(j).Length,timeseries(j).Keywords);
+            titletext = sprintf('[%u/%u] %s (%u), keywords = %s --- read\n',j,nits,timeseries(j).Filename,timeseries(j).Length,timeseries(j).Keywords);
             title(titletext,'interpreter','none');
             fprintf(1,titletext)
             pause(0.2); % wait 0.2 seconds
@@ -439,35 +439,7 @@ else
         end
     end
     SQL_add_chunked(dbc,sprintf('INSERT INTO %s (%s,%s) VALUES',thereltable,theid,thekid),addcell); % add them all in chunks
-    
-    % REALLY SLOW:
-    % for i = 1:length(kws) % each time series or operation
-    %     for j = 1:length(kwsplit{i}) % each keyword assinged to the time series or operation
-    %         switch importwhat
-    %         case 'ts'
-    %             InsertString = sprintf(['INSERT INTO TsKeywordsRelate (tskw_id, ts_id) SELECT ' ...
-    %                 'tskw_id, ts_id FROM TimeSeriesKeywords, TimeSeries ' ...
-    %                 'WHERE TimeSeriesKeywords.Keyword = ''%s'' AND TimeSeries.Filename = ''%s'''], ...
-    %                             kwsplit{i}{j},timeseries(i).Filename);
-    %             [~,emsg] = mysql_dbexecute(dbc, InsertString);
-    %             if ~isempty(emsg)
-    %                 fprintf(1,'\nError inserting %s,%s to TsKeywordsRelate\n',...
-    %                                 kwsplit{i}{j},timeseries(i).Filename); keyboard
-    %             end
-    %         case 'ops'
-    %             InsertString = sprintf(['INSERT INTO OpKeywordsRelate (mkw_id, m_id) SELECT ' ...
-    %                 'mkw_id, m_id FROM OperationKeywords, Operations ' ...
-    %                 'WHERE OperationKeywords.Keyword = ''%s'' AND Operations.OpName = ''%s'''], ...
-    %                             kwsplit{i}{j},esc(operation(i).Name));
-    %             [~,emsg] = mysql_dbexecute(dbc, InsertString);
-    %             if ~isempty(emsg)
-    %                 fprintf(1,'\nError inserting %s,%s to OpKeywordsRelate\n',...
-    %                             kwsplit{i}{j},operation(i).Name); keyboard
-    %             end
-    %         end
-    %     end
-    % end
-    
+        
     % Increment Nmatches in the keywords table
     fprintf(1,' done.\nNow the match counts...')
     % Redo them from scratch should be easier actually
