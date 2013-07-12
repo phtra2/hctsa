@@ -239,7 +239,9 @@ case 'mops' % Prepare toadd cell for master operations
     for j = 1:nits
         master(j).Code = datain{j,1};
         master(j).MasterLabel = datain{j,2};
-        toadd{j} = sprintf('(''%s'', ''%s'')',esc(master(j).MasterLabel),esc(master(j).Code));
+        codesplit = regexp(master(j).Code,'\(','split');
+        master(j).mfile = codesplit{1}; % the code portion
+        toadd{j} = sprintf('(''%s'', ''%s'',''%s'')',esc(master(j).MasterLabel),esc(master(j).Code),esc(master(j).mfile));
     end
     
 case 'ops' % Prepare toadd cell for operations        
@@ -247,13 +249,13 @@ case 'ops' % Prepare toadd cell for operations
         operation(j).Code = datain{j,1};
         operation(j).Name = datain{j,2};
         operation(j).Keywords = datain{j,3};
-        if strfind(operation(j).Code,'(') % single operation
-            operation(j).MasterLabel = '';
-            toadd{j} = sprintf('(''%s'', ''%s'',NULL,''%s'')',esc(operation(j).Name),esc(operation(j).Code),esc(operation(j).Keywords));
-        else % pointer operation
-            operation(j).MasterLabel = strtok(operation(j).Code,'.');
-            toadd{j} = sprintf('(''%s'', ''%s'',''%s'',''%s'')',esc(operation(j).Name),esc(operation(j).Code),esc(operation(j).MasterLabel),esc(operation(j).Keywords));
-        end
+        % if strfind(operation(j).Code,'(') % single operation
+        %     operation(j).MasterLabel = '';
+        %     toadd{j} = sprintf('(''%s'', ''%s'',NULL,''%s'')',esc(operation(j).Name),esc(operation(j).Code),esc(operation(j).Keywords));
+        % else % pointer operation
+        operation(j).MasterLabel = strtok(operation(j).Code,'.');
+        toadd{j} = sprintf('(''%s'', ''%s'',''%s'',''%s'')',esc(operation(j).Name),esc(operation(j).Code),esc(operation(j).MasterLabel),esc(operation(j).Keywords));
+        % end
     end
 end
 if bevocal, fprintf(1,'\ndone.\n'); end
@@ -302,7 +304,7 @@ case 'ts' % Add time series to the TimeSeries table
 case 'ops' % Add operations to the Operations table
     SQL_add_chunked(dbc,'INSERT INTO Operations (OpName, Code, MasterLabel, Keywords) VALUES',toadd,isduplicate);        
 case 'mops'
-    SQL_add_chunked(dbc,'INSERT INTO MasterOperations (MasterLabel, MasterCode) VALUES',toadd,isduplicate);
+    SQL_add_chunked(dbc,'INSERT INTO MasterOperations (MasterLabel, MasterCode, CodeName) VALUES',toadd,isduplicate);
 end
 fprintf(1,' done.\n')
 
@@ -331,12 +333,12 @@ end
 if strcmp(importwhat,'mops')
     % Update the OperationCode table
     fprintf(1,'Updating the OperationCode table...')
-    allcode = cell(nits,1);
-    for i = 1:nits
-        twoparts = regexp(master(i).Code,'\(','split');
-        allcode{i} = twoparts{1}; % the code portion
-    end
-    allcode = unique(allcode); % unique code files in this import
+    % allcode = cell(nits,1);
+    % for i = 1:nits
+    %     twoparts = regexp(master(i).Code,'\(','split');
+    %     allcode{i} = twoparts{1}; % the code portion
+    % end
+    allcode = unique({master.mfile}); % unique .m files from this import
     ncode = length(allcode);
     
     % Check for duplicates
@@ -361,8 +363,11 @@ if strcmp(importwhat,'mops')
     
     % Create links from all MasterOperations to OperationCode
     UpdateString = ['UPDATE MasterOperations AS m SET c_id = (SELECT c_id FROM OperationCode AS c' ...
-                        ' WHERE c.Code = m.Code)']
-    
+                        ' WHERE c.CodeName = m.CodeName)'];
+    [~,emsg] = mysql_dbexecute(dbc,UpdateString);
+    if ~isempty(emsg)
+        fprintf(1,'Error updating c_id links to master operations\n')
+    end
 else
     % Update the timeseries/operations keywords table
     fprintf(1,'Updating the %s table in %s...',thektable,dbname)

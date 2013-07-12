@@ -68,7 +68,8 @@ case 'MasterOperations'
     CreateString = ['CREATE TABLE MasterOperations ' ...
         '(mop_id INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY, ' ... % Unique integer identifier
         'MasterLabel VARCHAR(255), ' ... % Name given to master code file
-        'MasterCode VARCHAR(255), ' ... % Code to execute
+        'MasterCode VARCHAR(255), ' ... % Code to execute (including input arguments)
+        'CodeName VARCHAR(255), ' ... % Name of actual .m file executed
         'NPointTo INTEGER UNSIGNED, ' ... % Number of children
         'c_id INTEGER, ' ... % links each masteroperation to a corresponding code_id
         'LastModified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, ' ...
