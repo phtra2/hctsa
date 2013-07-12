@@ -1,4 +1,4 @@
-function [opoutput, opquality, optime] = TSQ_brawn_oploop(x, y, moplink, Moutput, Mct, Mmlab, parmcodej, fid)
+function [opoutput, opquality, optime] = TSQ_brawn_oploop(moplink, Moutput, Mct, Mmlab, parmcodej, fid)
 
 % make links to the master
 Moutput = Moutput{moplink};
@@ -30,7 +30,7 @@ try
 catch emsg
 	fprintf(fid,'-----Error linking to master operation %s by %s\n',Mmlab,parmcodej);
     fprintf(fid,'%s\n',emsg.message)
-    keyboard
+    RA_keyboard
     opoutput = 0; % Output = 0
 	opquality = 1; % fatal error QualityCode -- something of a different error, though...
     optime = NaN; % don't worry about calculation time for errors

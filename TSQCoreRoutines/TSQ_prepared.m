@@ -146,7 +146,7 @@ for i = 1:nits
     if ~isempty(emsg)
         fprintf(1,'Error retrieving outputs from %s???\n',dbname);
         fprintf(1,'%s\n',emsg)
-        keyboard
+        RA_keyboard
     end
     if size(qrc) == 0
         fprintf(1,'No data to retrieve for ts_id = (%s)\n',bencat(ts_ids_now,','));
@@ -232,10 +232,11 @@ mkw = minfo(:,3); % operation keywords
 % Now get master info
 % (i) Which masters are implicated?
 SelectString = ['SELECT mop_id, MasterLabel, MasterCode FROM MasterOperations WHERE mop_id IN ' ...
-				'(SELECT DISTINCT mop_id FROM MasterPointerRelate WHERE m_id IN (' m_ids_keep_string '))'];
+				'(SELECT DISTINCT mop_id FROM Operations WHERE m_id IN (' m_ids_keep_string '))'];
 [masterinfo,~,~,emsg] = mysql_dbquery(dbc,SelectString);
 if ~isempty(emsg)
-    fprintf(1,'Error retrieving Master information...\n'); keyboard
+    fprintf(1,'Error retrieving Master information...\n');
+    RA_keyboard
 else
     if ~isempty(masterinfo) % there are masters in out midst
         Mmid = vertcat(masterinfo{:,1});
@@ -250,8 +251,9 @@ else
 end
 
 % (ii) Get master link information
-SelectString = ['SELECT mop_id FROM (SELECT m_id FROM Operations WHERE m_id IN (' m_ids_keep_string ')) AS T1 ' ...
-					'LEFT JOIN MasterPointerRelate ON T1.m_id = MasterPointerRelate.m_id'];
+SelectString = ['SELECT DISTINCT mop_id FROM Operations WHERE m_id IN (' m_ids_keep_string ')'];
+% SelectString = ['SELECT mop_id FROM (SELECT m_id FROM Operations WHERE m_id IN (' m_ids_keep_string ')) AS T1 ' ...
+%                     'LEFT JOIN MasterPointerRelate ON T1.m_id = MasterPointerRelate.m_id'];
 [masterlink,~,~,emsg] = mysql_dbquery(dbc,SelectString);
 empties = find(cellfun(@isempty,masterlink));
 if ~isempty(empties), masterlink(empties) = {0}; end

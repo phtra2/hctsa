@@ -156,18 +156,18 @@ for i = 1:nts
 		%% Now assign all the results to the right operations
 		if toparallel
 	        parfor j = 1:ncal
-                [ffi(j), qqi(j), cti(j)] = TSQ_brawn_oploop(x, y, parmlink(j), Moutput,...
+                [ffi(j), qqi(j), cti(j)] = TSQ_brawn_oploop(parmlink(j), Moutput,...
                                                     Mcts,Mmlab,parmcode{j},fid);
             end
             % TSQ_brawn_oploop(x, y, moplink, Moutput, Mcts, Mmlab, parmcodej, partsfi, fid, bevocal)
 		else
             for j = 1:ncal
                 try
-                    [ffi(j), qqi(j), cti(j)] = TSQ_brawn_oploop(x, y, parmlink(j), Moutput,...
-                                                Mcts,Mmlab,parmcode{j},fid);
+                    [ffi(j), qqi(j), cti(j)] = TSQ_brawn_oploop(parmlink(j), Moutput,...
+                                                    Mcts,Mmlab,parmcode{j},fid);
                 catch
                     fprintf(1,'Error retrieving element %s from %s\n',parmcode{j},Mmlab{parmlink(j)})
-                    keyboard
+                    RA_keyboard
                 end
                 % [ffi(j),qqi(j),cti(j)] = TSQ_brawn_oploop(x, y, parmlink(j), Moutput{parmlink(j)},...
                 %                                 Mcts(parmlink(j)),Mmlab{parmlink(j)},fid,bevocal);

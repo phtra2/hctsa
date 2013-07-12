@@ -5,10 +5,9 @@ function SQL_create_all_tables()
 % Ben Fulcher, now uses SQL_TableCreateString, May 2013
 
 % Specify the names of tables to create (should be valid names in SQL_TableCreateString)
-TableNames = {'Operations', ...     % Operations Table
+TableNames = {'OperationCode', ...  % OperationCode Table
         'MasterOperations', ...     % MasterOperations Table
-        'MasterPointerRelate', ...  % MasterPointerRelate Table
-        'OperationCode', ...        % OperationCode Table
+        'Operations', ...           % Operations Table
         'OperationCodeLinks', ...   % OperationCodeLinks Table
         'CodeSource', ...           % CodeSource Table
         'CodeSourceLink', ...       % CodeSourceLink Table
@@ -18,6 +17,9 @@ TableNames = {'Operations', ...     % Operations Table
         'TimeSeriesKeywords', ...   % TimeSeriesKeywords
         'TsKeywordsRelate', ...     % TsKeywordsRelate Table
         'Results'};                 % Results Table
+
+        % 'MasterPointerRelate', ...  % MasterPointerRelate Table
+
 
 % Convert Table names to mySQL CREATE TABLE statements:
 CreateString = arrayfun(@(x)SQL_TableCreateString(TableNames{x}),1:length(TableNames),'UniformOutput',0);

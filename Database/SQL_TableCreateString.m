@@ -8,11 +8,13 @@ case 'Operations'
         '(m_id INTEGER NOT NULL AUTO_INCREMENT, ' ... % Unique integer identifier
         'OpName VARCHAR(255), ' ... % Unique name for the operation
         'Code VARCHAR(255), ' ... % Code to execute, or Master to retrieve from
-        'Keywords VARCHAR(255), ' ... % Comma separated keyword metadata ...
+        'Keywords VARCHAR(255), ' ... % Comma separated keyword metadata
         'MasterLabel VARCHAR(255), ' ... % Label of master code
+        'mop_id INTEGER, ' ... % id of master code
         'Stochastic TINYINT(1), ' ... % Boolean identifier: is it a stochastic algorithm?
         'LastModified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, ' ... % Last modified
-        'PRIMARY KEY (m_id))']; % sets primary key as m_id
+        'PRIMARY KEY (m_id), ' ...  % sets primary key as m_id
+        'FOREIGN KEY (mop_id) REFERENCES MasterOperations(mop_id) ON DELETE CASCADE ON UPDATE CASCADE)'];
         % 'Pointer TINYINT(1), ' ... % perhaps redundant given MasterLabel
 
 case 'OperationCode'
@@ -68,7 +70,9 @@ case 'MasterOperations'
         'MasterLabel VARCHAR(255), ' ... % Name given to master code file
         'MasterCode VARCHAR(255), ' ... % Code to execute
         'NPointTo INTEGER UNSIGNED, ' ... % Number of children
-        'LastModified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP)']; % Time stamp of when entry was last modified
+        'c_id INTEGER, ' ... % links each masteroperation to a corresponding code_id
+        'LastModified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, ' ...
+        'FOREIGN KEY (c_id) REFERENCES OperationCode(c_id) ON DELETE CASCADE ON UPDATE CASCADE)']; % Time stamp of when entry was last modified
         
 case 'MasterPointerRelate'
     CreateString = ['CREATE TABLE MasterPointerRelate ' ...

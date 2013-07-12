@@ -306,7 +306,7 @@ case 'mops'
 end
 fprintf(1,' done.\n')
 
-% Add new entries to the Results table
+% Add new entries to the Results table if new operations or time series have been added
 if ~strcmp(importwhat,'mops')
     resultstic = tic;
     if bevocal
@@ -358,6 +358,11 @@ if strcmp(importwhat,'mops')
         SQL_add_chunked(dbc,'INSERT INTO OperationCode (CodeName, IsSubsidiary, fdepDone) VALUES',toadd,isduplicate);
     end
     fprintf(1,' done.\n')
+    
+    % Create links from all MasterOperations to OperationCode
+    UpdateString = ['UPDATE MasterOperations AS m SET c_id = (SELECT c_id FROM OperationCode AS c' ...
+                        ' WHERE c.Code = m.Code)']
+    
 else
     % Update the timeseries/operations keywords table
     fprintf(1,'Updating the %s table in %s...',thektable,dbname)
@@ -469,12 +474,21 @@ end
 
 % Update master/operation links
 if ismember(importwhat,{'mops','ops'}) % there may be new links
+    
+    % Add mop_ids to Operations table
+    fprintf(1,'Updating master links...'); tic
+    UpdateString = ['UPDATE Operations AS o SET mop_id = (SELECT mop_id FROM MasterOperations AS m ' ...
+                        'WHERE m.MasterLabel = o.MasterLabel) WHERE mop_id IS NULL'];
+    [~,emsg] = mysql_dbexecute(dbc,UpdateString);
+    
+    %% ALTERNATIVE: FILL A LINKING TABLE AS A JOIN ON MasterLabel:
     % Delete the linking table and recreate it from scratch is easiest
-    fprintf(1,'Filling MasterPointerRelate...');
-    mysql_dbexecute(dbc,'DELETE FROM MasterPointerRelate');
-    InsertString = ['INSERT INTO MasterPointerRelate select m.mop_id,o.m_id FROM MasterOperations ' ...
-                            'm JOIN Operations o ON m.MasterLabel = o.MasterLabel'];
-    [~,emsg] = mysql_dbexecute(dbc,InsertString);
+    % fprintf(1,'Filling MasterPointerRelate...');
+    % mysql_dbexecute(dbc,'DELETE FROM MasterPointerRelate');
+    % InsertString = ['INSERT INTO MasterPointerRelate SELECT m.mop_id,o.m_id FROM MasterOperations ' ...
+    %                         'm JOIN Operations o ON m.MasterLabel = o.MasterLabel'];
+    % [~,emsg] = mysql_dbexecute(dbc,InsertString);
+
     if isempty(emsg)
         fprintf(' done.\n');
     else
@@ -482,28 +496,38 @@ if ismember(importwhat,{'mops','ops'}) % there may be new links
         fprintf(1,'%s\n',emsg); keyboard
     end
     
-    % if strcmp(importwhat,'ops')
-    %     % operations were imported -- match their MasterLabels with elements of the MasterOperations table using mySQL JOIN
-    %     InsertString = ['INSERT INTO MasterPointerRelate SELECT m.mop_id,o.m_id FROM MasterOperations m JOIN ' ...
-    %                         'Operations o ON m.MasterLabel = o.MasterLabel WHERE o.m_id > %u',maxid];
-    % else
-    %     InsertString = ['INSERT INTO MasterPointerRelate SELECT m.mop_id,o.m_id FROM MasterOperations m JOIN ' ...
-    %                         'Operations o ON m.MasterLabel = o.MasterLabel WHERE m.mop_id > %u',maxid];
-    % end
+    %     % if strcmp(importwhat,'ops')
+    %     %     % operations were imported -- match their MasterLabels with elements of the MasterOperations table using mySQL JOIN
+    %     %     InsertString = ['INSERT INTO MasterPointerRelate SELECT m.mop_id,o.m_id FROM MasterOperations m JOIN ' ...
+    %     %                         'Operations o ON m.MasterLabel = o.MasterLabel WHERE o.m_id > %u',maxid];
+    %     % else
+    %     %     InsertString = ['INSERT INTO MasterPointerRelate SELECT m.mop_id,o.m_id FROM MasterOperations m JOIN ' ...
+    %     %                         'Operations o ON m.MasterLabel = o.MasterLabel WHERE m.mop_id > %u',maxid];
+    %     % end
+    %     
     
-    M_ids = mysql_dbquery(dbc,'SELECT mop_id FROM MasterOperations');
-	M_ids = vertcat(M_ids{:}); % vector of master_ids    
-    for k = 1:length(M_ids)
-    	UpdateString = sprintf(['UPDATE MasterOperations SET NPointTo = ' ...
-							'(SELECT COUNT(mop_id) FROM MasterPointerRelate WHERE mop_id = %u)' ...
-        					'WHERE mop_id = %u'],M_ids(k),M_ids(k));
-    	[rs,emsg] = mysql_dbexecute(dbc, UpdateString);
-    	if ~isempty(emsg)
-    		fprintf(1,'Error counting NPointTo operations for mop_id = %u\n',M_ids(k));
-            fprintf(1,'%s\n',emsg)
-            keyboard
-    	end
+    UpdateString = sprintf(['UPDATE MasterOperations AS m SET NPointTo = ' ...
+                    '(SELECT COUNT(o.mop_id) FROM Operations AS o WHERE m.mop_id = o.mop_id)']);
+    [~,emsg] = mysql_dbexecute(dbc, UpdateString);
+    if ~isempty(emsg)
+        fprintf(1,'Error counting NPointTo operations for mop_id = %u\n',M_ids(k));
+        fprintf(1,'%s\n',emsg)
+        keyboard
     end
+    
+    % M_ids = mysql_dbquery(dbc,'SELECT mop_id FROM MasterOperations');
+    % M_ids = vertcat(M_ids{:}); % vector of master_ids    
+    % for k = 1:length(M_ids)
+    %     UpdateString = sprintf(['UPDATE MasterOperations SET NPointTo = ' ...
+    %                     '(SELECT COUNT(mop_id) FROM Operations WHERE mop_id = %u)' ...
+    %                         'WHERE mop_id = %u'],M_ids(k),M_ids(k));
+    %     [~,emsg] = mysql_dbexecute(dbc, UpdateString);
+    %     if ~isempty(emsg)
+    %         fprintf(1,'Error counting NPointTo operations for mop_id = %u\n',M_ids(k));
+    %         fprintf(1,'%s\n',emsg)
+    %         keyboard
+    %     end
+    % end
 end
 
 %% Close database
