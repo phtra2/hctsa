@@ -67,7 +67,7 @@ counts = counts - 1; % ignore self-counts
 
 % No meaningful output if never got a count with any other point!
 % (radius, r, is probably too small)
-if all(counts==0)
+if all(counts == 0)
     out = NaN; return
 end
 
@@ -83,9 +83,9 @@ out.iqr = iqr(counts);
 out.iqronrange = out.iqr/range(counts);
 
 % Distribution
-x = 0:max(counts);
+x = (0:max(counts));
 n = hist(counts,x); n=n/sum(n);
-[out.mode_val mix] = max(n);
+[out.mode_val, mix] = max(n);
 out.mode = x(mix);
 
 % Poisson fit to distribution
@@ -98,8 +98,8 @@ out.poissfit_absdiff = sum(abs(poiss_n-n));
 out.poissfit_sqdiff = sum((poiss_n-n).^2);
 
 % Entropy in 10-bin histogram
-[n x] = hist(counts,10); n=n/(sum(n)*(x(2)-x(1)));
-out.hist10_ent = sum(n(n>0).*log(n(n>0)));
+[n, x] = hist(counts,10); n = n/(sum(n)*(x(2)-x(1)));
+out.hist10_ent = sum(n(n>0).*log(n(n > 0)));
 
 % plot(x,poisspdf(x,l),'g'); hold on;
 % plot(x,n,'k'); hold off

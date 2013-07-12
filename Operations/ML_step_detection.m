@@ -9,7 +9,7 @@ function out = ML_step_detection(y,method,params)
 
 N = length(y);
 
-if nargin<2 || isempty(method)
+if nargin < 2 || isempty(method)
     disp('Using the Kalafut-Visscher method by default')
     method = 'kv';
 end
@@ -27,7 +27,7 @@ switch method
         
         % Put in chpts form: a vector specifying indicies of starts of
         % constant runs.
-        if length(steps)==2
+        if length(steps) == 2
             chpts = 1;
         else
             chpts = [1;steps(2:end-1)+1];
@@ -50,7 +50,7 @@ switch method
         %  x - Step-filtered output signal
         
         % Set defaults, params should be [K,M,p]
-        if nargin<3
+        if nargin < 3
             params = [];
         end
         if length(params)>=1, K = params(1);
@@ -69,7 +69,6 @@ switch method
         else p = 10;
         end
         steppedy = ckfilter(y, K, M, p);
-%         keyboard
         
     case 'l1pwc'
         % Based around code originally written by 
@@ -101,7 +100,7 @@ switch method
         %              solution x = mean(y).
         
         % Set defaults, params should be [lambda]
-        if nargin<3
+        if nargin < 3
             params = [];
         end
         if length(params)>=1, lambda = params(1);

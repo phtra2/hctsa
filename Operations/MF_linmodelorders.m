@@ -19,17 +19,17 @@ N = length(y);
 y = iddata(y,[],1);
 
 % (2) model orders
-if nargin<2 || isempty(orders)
+if nargin < 2 || isempty(orders)
     orders = (1:10)';
 end
-if size(orders,1)==1
+if size(orders,1) == 1
    orders = orders';
 end
 
 % (3) howtotest -- either all (trains and tests on the whole time series);
 % or a proportion of the time series to train on; will test on the
 % remaining portion.
-if nargin<3 || isempty(howtotest)
+if nargin < 3 || isempty(howtotest)
     howtotest = 'all';
 end
 
@@ -94,10 +94,10 @@ out.best_n = nn;
 
 [nn vmodaic] = selstruc(V,'aic'); % minimize Akaike's Information Criterion (AIC)
 out.aic_n = nn; % optimum model order minimizing AIC in the range given
-out.bestaic = vmodaic(nn==min(nn));
+out.bestaic = vmodaic(nn == min(nn));
 
 [nn vmodmdl] = selstruc(V,'mdl'); % minimize Rissanen's Minimum Description Length (MDL)
 out.mdl_n = nn; % optimal model order minimizing MDL in the range given
-out.bestmdl = vmodmdl(nn==min(nn));
+out.bestmdl = vmodmdl(nn == min(nn));
 
 end

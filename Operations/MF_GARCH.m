@@ -29,7 +29,7 @@ if nargin < 2 || isempty(preproc)
 end
 
 % % Preestimation settings: preest
-% if nargin<3 || isempty(preest)
+% if nargin < 3 || isempty(preest)
 %     preest = 'yep'; % do pre-estimation
 % end
 
@@ -145,7 +145,7 @@ switch params
         garchpnam = {'R','M','P','Q'};
         s = '';
         for i=1:length(garchpval)
-            if ~garchpval(i)==0 % this should be a component to specify in 
+            if ~garchpval(i) == 0 % this should be a component to specify in 
                 s = [s '''' garchpnam{i} ''', ' num2str(garchpval(i)) ', '];
             end
         end
@@ -185,7 +185,6 @@ if all(isnan(innovations))
     out = NaN; return
 end
 
-% keyboard
 %% (4) Return statistics on fit
 
 % (i) Return coefficients, and their standard errors as seperate statistics

@@ -15,11 +15,11 @@ function out = TSTL_poincare(y,ref,embedparams)
 %% Foreplay
 N = length(y);
 
-if nargin<2 || isempty(ref)
+if nargin < 2 || isempty(ref)
     ref = 'max'; % reference point is the first maximum of the time series
 end
 
-if nargin<3 || isempty(embedparams)
+if nargin < 3 || isempty(embedparams)
     embedparams = {'mi',3};
     disp('using default embedding using mutual information and 3')
 end
@@ -61,11 +61,10 @@ try
 catch me
     if strcmp(me.message,'No section points found') ...
             || strcmp(me.identifier,'MATLAB:badsubscript')
-        disp('Error in TSTL_poincare -- no section points found');
+        fprintf(1,'No section points found to run TSTL_poincare\n');
         out = NaN; return
     else
-        disp('UNKNOWN ERROR')
-        keyboard
+        error(me.message)
     end
 end
 
@@ -120,7 +119,6 @@ out.meands = mean(ds);
 out.maxds = max(ds);
 out.minds = min(ds);
 out.iqrds = iqr(ds);
-% keyboard
 
 
 
@@ -149,7 +147,7 @@ pbox = boxcounts/NN;
 
 out.maxpbox10 = max(pbox(:));
 out.minpbox10 = min(pbox(:));
-out.zerospbox10 = sum(pbox(:)==0);
+out.zerospbox10 = sum(pbox(:) == 0);
 out.meanpbox10 = mean(pbox(:));
 out.rangepbox10 = range(pbox(:));
 out.hboxcounts10 = -sum(pbox(pbox>0).*log(pbox(pbox>0)));
@@ -159,7 +157,7 @@ boxcounts = subcountboxes(x,y,5);% 5 partitions per axis
 pbox = boxcounts/NN;
 out.maxpbox5 = max(pbox(:));
 out.minpbox5 = min(pbox(:));
-out.zerospbox5 = sum(pbox(:)==0);
+out.zerospbox5 = sum(pbox(:) == 0);
 out.meanpbox5 = mean(pbox(:));
 out.rangepbox5 = range(pbox(:));
 out.hboxcounts5 = -sum(pbox(pbox>0).*log(pbox(pbox>0)));

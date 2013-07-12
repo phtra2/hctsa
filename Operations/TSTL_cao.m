@@ -17,12 +17,12 @@ N = length(y); % length of time series
 s = signal(y); % convert to signal object for TSTOOL
 
 % (1) Maximum dimension, maxdim
-if nargin<2 || isempty(maxdim)
+if nargin < 2 || isempty(maxdim)
     maxdim=10; % default maxdim is 10
 end
 
 % (2) Time delay, tau
-if nargin<3 || isempty(tau)
+if nargin < 3 || isempty(tau)
     tau='ac'; % choose from first zero crossing of ACF
 end
 if ischar(tau) % determine by some other method
@@ -35,19 +35,19 @@ if ischar(tau) % determine by some other method
 end
 
 % (3) Number of nearest neighbours, NNR
-if nargin<4 || isempty(NNR)
+if nargin < 4 || isempty(NNR)
     NNR = 3; % default to three nearest neighbours
 end
 
 % (4) Number of reference points, Nref
-if nargin<5 || isempty(Nref)
+if nargin < 5 || isempty(Nref)
     Nref = -1; % default: use all points
 end
 if Nref<1 && Nref>0 % specify a fraction of data size
     Nref = round(N*Nref);
 end
 
-if nargin<6
+if nargin < 6
     justanum=[];
 end
 
@@ -174,7 +174,6 @@ else % RETURN STATISTICS ON CURVES
 
 
 
-
     % When magnitude of gradient decreases by some factor
     % (+1s because of differencing)
     mm2 = abs(m2(1:end-1))./abs(m2(2:end));
@@ -191,7 +190,7 @@ else % RETURN STATISTICS ON CURVES
 	    out.fmm20_1 = SUB_first(mm1,'above',20,maxdim-2)+1;
 	    out.fmm40_1 = SUB_first(mm1,'above',40,maxdim-2)+1;
 	    % where is maximum (+1s because of differencing
-	    out.fmmmax_1 = find(mm1==max(mm1),1,'first')+1;
+	    out.fmmmax_1 = find(mm1 == max(mm1),1,'first')+1;
 	end
 
 
@@ -205,20 +204,13 @@ else % RETURN STATISTICS ON CURVES
 	    out.fmm20_2 = SUB_first(mm2,'above',20,maxdim-2)+1;
 	    out.fmm40_2 = SUB_first(mm2,'above',40,maxdim-2)+1;
 	    % where is maximum (+1s because of differencing)
-	    out.fmmmax_2 = find(mm2==max(mm2),1,'first')+1;
+	    out.fmmmax_2 = find(mm2 == max(mm2),1,'first')+1;
 	end
-
-
-
-
 
 
 end
 
-% keyboard
-
 % plot(boxdimo);
-% keyboard
 
     function yep = SUB_first(x,ab,th,maxdim)
         % for input vector x, returns first index that it exceeds (ab='above') or

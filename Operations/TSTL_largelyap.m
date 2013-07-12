@@ -4,7 +4,7 @@ function out = TSTL_largelyap(y,Nref,maxtstep,past,NNR,embedparams)
 % series s, using formula (1.5) in Parlitz Nonlinear Time Series Analysis
 % book.
 % Inputs:
-% Nref: number of randomly-chosen reference points (-1==all)
+% Nref: number of randomly-chosen reference points (-1 == all)
 % maxtstep: maximum prediction length (samples)
 % past: exclude -- Theiler window idea
 % NNR: number of nearest neighbours [opt]
@@ -24,7 +24,7 @@ if Nref<1 && Nref>0
 end
 
 % (2) maxtstep: maximum prediction length
-if nargin<3 || isempty(maxtstep)
+if nargin < 3 || isempty(maxtstep)
     maxtstep = 0.1; % 10% length of time series
 end
 if maxtstep<1 && maxtstep>0
@@ -38,7 +38,7 @@ if maxtstep>0.5*N;
 end
 
 % (3) past/theiler window
-if nargin<4 || isempty(past)
+if nargin < 4 || isempty(past)
     past = 40;
 end
 if past<1 && past>0
@@ -46,12 +46,12 @@ if past<1 && past>0
 end
 
 % (4) Number of neighest neighbours
-if nargin<5 || isempty(NNR)
+if nargin < 5 || isempty(NNR)
     NNR=3;
 end
 
 % (5) Embedding parameters, embedparams
-if nargin<6 || isempty(embedparams)
+if nargin < 6 || isempty(embedparams)
     embedparams={'ac','cao'};
     disp('using default embedding using autocorrelation and cao')
 else
@@ -90,7 +90,7 @@ t = spacing(rs);
 
 %% Get output stats
 
-if all(p==0)
+if all(p == 0)
     out=NaN; return
 end
 
@@ -165,11 +165,10 @@ else
     p_opt = p_scal(stptr(a):endptr(b))';
     pp = polyfit(t_opt,p_opt,1);
     pfit = pp(1)*t_opt+pp(2);
-    res = pfit-p_opt;
+    res = pfit - p_opt;
     
     % hold on; plot(t_opt,p_opt,'og'); hold off;
     % hold on; plot(t_opt,pfit,'-g'); hold off;
-    % keyboard
     % vse == vary start and end times
     out.vse_meanabsres = mean(abs(res));
     out.vse_rmsres = sqrt(mean(res.^2));
@@ -197,7 +196,6 @@ else
     
     % hold on; plot(t_opt,p_opt,'om'); hold off;
     % hold on; plot(t_opt,pfit,'-m'); hold off;
-    % keyboard
     out.ve_meanabsres = mean(abs(res));
     out.ve_rmsres = sqrt(mean(res.^2));
     out.ve_gradient = pp(1);
@@ -214,10 +212,10 @@ s = fitoptions('Method','NonlinearLeastSquares','StartPoint',[max(p) -0.5]);
 f = fittype('a*(1-exp(b*x))','options',s);
 fitworked=1;
 try
-    [c,gof] = fit(t',p,f);
+    [c, gof] = fit(t',p,f);
 catch me
     if strcmp(me.message,'Inf computed by model function.')
-        fitworked=0;
+        fitworked = 0;
     end
 end
 if fitworked
@@ -236,19 +234,16 @@ end
 
 
 % hold on; plot(t,c.a*(1-exp(c.b*t)),':r');hold off
-% keyboard
-
 
 
     function badness = lfitbadness(x,y,gamma)
-        if nargin<3,
+        if nargin < 3,
             gamma = 0.006; % CHOSEN AD HOC!! (maybe it's nicer to say 'empirically'...)
         end
         pp = polyfit(x,y,1);
         pfit = pp(1)*x+pp(2);
         res = pfit-y;
         badness = mean(abs(res))-gamma*length(x); % want to still maximize length(x)
-        
     end
 
 

@@ -7,7 +7,7 @@ addfcn('Operations');
 addfcn('PeripheryFunctions');
 addfcn('TimeSeries');
 addfcn('TSQCoreRoutines');
-fprintf(1,' core directories added...\n')
+fprintf(1,' Core directories added.\n')
 
 %% Now add all Toolboxes:
 fprintf(1,'Adding external time-series toolboxes...')
@@ -35,6 +35,14 @@ addfcn('Toolboxes/MSmall_utilities');
 % Zoubin Gharamani's hmm toolbox
 fprintf(1,', HMM')
 addfcn('Toolboxes/hmm');
+
+% Code from Matlab Central
+fprintf(1,', Matlab Central code')
+addfcn('Toolboxes/MatlabCentral');
+
+% Rudy Moddemeijer's code
+fprintf(1,', Rudy Moddemeijer')
+addfcn('Toolboxes/Rudy_Moddemeijer');
 
 % Max Little's steps/bumps toolbox
 fprintf(1,', steps_bumps')

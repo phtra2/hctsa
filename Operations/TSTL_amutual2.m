@@ -9,7 +9,7 @@ s = signal(y); % convert to signal object for TSTOOL
 
 %% Check Inputs
 maxtau0 = maxtau;
-if nargin<2 || isempty(maxtau)
+if nargin < 2 || isempty(maxtau)
     maxtau = ceil(N/4);
 else
     maxtau = min(maxtau,ceil(N/2)); % if given a number, don't go above N/2
@@ -55,7 +55,7 @@ dmaximai = diff(maximai);
  % (no need to normalize since a given method inputs its range; but do it anyway... ;-))
 out.pmaxima = length(dmaximai)/floor(lami/2);
 out.modeperiodmax = mode(dmaximai);
-out.pmodeperiodmax = length(find(dmaximai==mode(dmaximai)))/length(dmaximai);
+out.pmodeperiodmax = length(find(dmaximai == mode(dmaximai)))/length(dmaximai);
 
 % Same for local minima
 % Look for periodicities in local maxima
@@ -65,7 +65,7 @@ dminimai = diff(minimai);
  % (no need to normalize since a given method inputs its range; but do it anyway... ;-))
 out.pminima = length(dminimai)/floor(lami/2);
 out.modeperiodmin = mode(dminimai);
-out.pmodeperiodmin = length(find(dminimai==mode(dminimai)))/length(dminimai);
+out.pmodeperiodmin = length(find(dminimai == mode(dminimai)))/length(dminimai);
 
 % number of crossings at mean/median level, percentiles
 out.pcrossmean = length(sgnchange(ami-mean(ami)))/(lami-1);

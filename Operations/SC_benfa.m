@@ -22,18 +22,18 @@ function out = SC_benfa(x,q,wtf,taustep,k,lag,loginc)
 % we're trying to fit...: locinc = 1;
 
 % 1) Compute integrated sequence
-if nargin<6 || isempty(lag)
+if nargin < 6 || isempty(lag)
     y = cumsum(x);
 else % specified a lag
     y = cumsum(x(1:lag:end));
     % better may be to downsample rather than this simple decimation
 end
-if nargin<7
+if nargin < 7
 	loginc = 0; % use linear spacing (this shouldn't really be default, but this 
 				% is for consistency with already-implemented precedent)
 end
 
-N = length(y); % length
+N = length(y); % length of the time series
 
 % perform scaling over a range of tau, up to a fifth the length
 % of the time series
@@ -45,11 +45,11 @@ if loginc
 else
 	taur = 5:taustep:floor(N/4); % maybe increased??
 end
-ntau = length(taur);
+ntau = length(taur); % analyze the time series across this many timescales
 
-if ntau<8
+if ntau < 8 % fewer than 8 points
     % ++BF 19/3/2010 (ntau<4); ++BF 28/6/2010 (ntau<8)
-    disp('Time Series is too short for good DFA');
+    fprintf(1,'This time Series is too short to analyze using DFA\n');
     out = NaN; return
 end
 
@@ -140,7 +140,6 @@ end
 %     plot(log(taur),log(F),'o-k');
 %     title(out.alpha)
     
-%     keyboard
     
     %% WE NEED SOME SORT OF AUTOMATIC DETECTION OF GRADIENT CHANGES/NUMBER
     %% OF PIECEWISE LINEAR PIECES
@@ -221,7 +220,7 @@ if length(r1)<8 || all(isnan(logFF(r1)))
     out.r1_ssr = NaN;
     out.r1_resac1 = NaN;
 else
-    [linfit stats] = robustfit(logtt(r1),logFF(r1));
+    [linfit, stats] = robustfit(logtt(r1),logFF(r1));
 
     out.r1_linfitint = linfit(1); % linear fit intercept
     out.r1_alpha = linfit(2); % linear fit gradient
@@ -233,7 +232,7 @@ else
 end
     
 % R2
-if length(r2)<8 || all(isnan(logFF(r2)))
+if length(r2) < 8 || all(isnan(logFF(r2)))
     out.r2_linfitint = NaN;
     out.r2_alpha = NaN;
     out.r2_stats_coeffcorr = NaN;
@@ -242,7 +241,7 @@ if length(r2)<8 || all(isnan(logFF(r2)))
     out.r2_ssr = NaN;
     out.r2_resac1 = NaN;
 else
-    [linfit stats] = robustfit(logtt(r2),logFF(r2));
+    [linfit, stats] = robustfit(logtt(r2),logFF(r2));
 
     out.r2_linfitint = linfit(1); % linear fit intercept
     out.r2_alpha = linfit(2); % linear fit gradient

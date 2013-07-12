@@ -45,7 +45,7 @@ if nargin < 2 || min(size(vin)) ~= 1
 end
 
 if nargin < 3 % doremove
-    error(sprintf('You must specify whether to remove the %s or just clear their data results',thewhat))
+    error('You must specify whether to remove the %s or just clear their data results',thewhat)
 end
 
 % Use default database if none specified
@@ -69,7 +69,7 @@ elseif doremove == 1
     dowhating = 'removing';
     dowhat = remove;
 else
-    error('Third input must be (0==clear), or (1==remove)')
+    error('Third input must be (0 == clear), or (1 == remove)')
 end
 
 % Check what to clear
@@ -77,7 +77,7 @@ SelectString = sprintf('SELECT %s FROM %s WHERE %s IN (%s)',thename,thetable,the
 [todump,~,~,emsg] = mysql_dbquery(dbc,SelectString);
 
 if ~isempty(emsg)
-	error(sprintf('Error retrieving selected %s indices (%s) from the %s table of %s',thewhat,theid,thetable,dbname))
+	error('Error retrieving selected %s indices (%s) from the %s table of %s',thewhat,theid,thetable,dbname)
 end
 reply = input(sprintf(['About to clear all data from %u %s stored in the Results table of ' ...
       			dbname ' [press any key to show them]'],length(vin),thewhat),'s');
@@ -145,7 +145,7 @@ else
     		fprintf(1,'Clearing Successful! I''ve just cleared %u x %u = %u entries from %s\n',length(vin),nts,nts*length(vin),dbname);
     	end
     else
-    	fprintf(1,'Error clearing results from %s... This is pretty bad news....\n',dbname); keyboard
+    	fprintf(1,'Error clearing results from %s... This is pretty bad news....\n%s',dbname,emsg); keyboard
     end
 end
 

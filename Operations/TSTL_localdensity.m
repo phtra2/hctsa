@@ -23,8 +23,9 @@ end
 s = benembed(y,embedparams{1},embedparams{2},1);
 
 if ~strcmp(class(s),'signal') && isnan(s); % embedding failed
-    out = NaN;
-    return
+    error('Embedding failed.')
+    % out = NaN;
+    % return
 end
 
 %% Run the code
@@ -37,14 +38,12 @@ rs = localdensity(s,NNR,past);
 % end
 %% Convert output to data
 locden = data(rs);
-if all(locden==0)
+if all(locden == 0)
     out = NaN; return
 end
 % locden is a vector of length equal to the number of points in the
 % embedding space (length of time series - m + 1), presumably the local
 % at each point
-
-% keyboard
 
 out.minden = min(locden);
 out.maxden = max(locden);
@@ -60,7 +59,5 @@ out.ac4den = CO_autocorr(locden,4);
 out.ac5den = CO_autocorr(locden,5);
 out.tauacden = CO_fmac(locden);
 out.taumiden = CO_fmmi(locden);
-
-% keyboard
 
 end

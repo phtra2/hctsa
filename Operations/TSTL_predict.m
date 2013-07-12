@@ -61,7 +61,7 @@ end
 % delay = embedpn(1);
 % dim = embedpn(2);
 if iscell(embedparams)
-    s = benembed(y,embedparams{1},embedparams{2},1);
+    s = benembed(y,embedparams{1},embedparams{2},1); % last in
 elseif embedparams == 0
     s = signal(y);
 end
@@ -81,8 +81,11 @@ if plen > 0 && plen <= 1
 end
 
 %% Run the code
-% have to call TSTOOLpredict because predict is now a built-in Matlab function
-rs = TSTOOLpredict(s, plen, NNR, stepsize, pmode);
+try
+    rs = predict(s, plen, NNR, stepsize, pmode);
+catch
+    error('TSTL_predict didn''t run correctly')
+end
 
 y_pred = data(rs); % convert signal back to vector data
 y_pred1 = y_pred(:,1); % for this embedding dimension (?)
@@ -106,13 +109,13 @@ out.pred1rangec = abs(range(y_pred1)/range(y)-1);
 
 % look at structure in cross correlation function, xcf
 % (requires that prediction length the same as the time series itself)
-[xcf lags]=xcorr(y,y_pred1,'coeff');
+[xcf, lags] = xcorr(y,y_pred1,'coeff');
 % plot(lags,xcf);
 
 out.maxabsxcf = max(abs(xcf)); % maximum of cross-correlation function; where it occurs
-out.maxabsxcflag = lags(find(abs(xcf)==out.maxabsxcf,1,'first'));
+out.maxabsxcflag = lags(find(abs(xcf) == out.maxabsxcf,1,'first'));
 out.maxxcf = max(xcf); % maximum positive cross-correlation
-out.maxxcflag = lags(find(xcf==out.maxxcf,1,'first'));
+out.maxxcflag = lags(find(xcf == out.maxxcf,1,'first'));
 out.meanxcf = mean(xcf);
 out.minxcf = min(xcf);
 out.stdxcf = std(xcf);
@@ -138,7 +141,7 @@ if out.maxxcflag>0
     y_lagged = y(out.maxxcflag:end);
     Nlag = length(y_lagged);
     y_pred1_lagged = y_pred1(1:Nlag);
-elseif out.maxxcflag==0
+elseif out.maxxcflag == 0
     y_lagged = y;
     y_pred1_lagged = y;
     Nlag = length(y);

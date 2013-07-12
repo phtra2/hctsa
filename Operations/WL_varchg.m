@@ -31,9 +31,8 @@ if mindelay > 0 && mindelay < 1
    mindelay = ceil(mindelay*N);
 end
 
-if wmaxlev(N,wname) < level
-    disp('Chosen level is too large for this wavelet on this signal. Sorry.');
-    return
+if wmaxlev(N, wname) < level
+    error('Chosen level, %u, is too large for this wavelet on this signal. Sorry.', level);
 end
 
 % The aim of this example is to recover the
@@ -45,12 +44,10 @@ end
 % approximation.
 
 %% Perform a single-level wavelet decomposition 
-[c,l] = wavedec(y,level,wname);
+[c, l] = wavedec(y,level,wname);
 
 % Reconstruct detail at the same level.
 det = wrcoef('d',c,l,wname,level);
-
-% keyboard
 
 % % 2. Replace 2% of the greatest (absolute) values by the mean
 % % in order to remove almost all the signal.
@@ -65,8 +62,7 @@ try
     [pts_Opt, kopt, t_est] = wvarchg(det, maxnchpts, mindelay);
 catch emsg
     if strcmp(emsg.identifier,'MATLAB:nomem')
-       disp('No memory -- fatal error. Exiting.');
-       return
+       error('Not enough memory.');
     end
 end
 

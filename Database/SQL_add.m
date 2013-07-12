@@ -41,7 +41,7 @@ if nargin < 4
     bevocal = 1; % gives lots and lots of user feedback
 end
 
-if bevocal, fprintf(1,'Using input file %s',INPfile); end
+if bevocal, fprintf(1,'Using input file %s\n',INPfile); end
 ticker = tic;
 
 %% Open Database
@@ -57,7 +57,7 @@ switch importwhat
         thektable = 'TimeSeriesKeywords';
         thereltable = 'TsKeywordsRelate';
         thename = 'Filename';
-        maxL = 40000; % the longest time series length for the database
+        maxL = 50000; % the longest time series length accepted in the database
     case 'ops'
         thewhat = 'operations';
         theid = 'm_id';
@@ -70,7 +70,6 @@ switch importwhat
         thewhat = 'master operations';
         theid = 'mop_id';
         thetable = 'MasterOperations';
-        
 end
 
 
@@ -84,7 +83,7 @@ case 'ts' % Read the time series input file:
         fprintf(1,'Use whitespace as a delimiter and \\n for new lines...\n')
         fprintf(1,'(Be careful that no additional whitespace is in any fields...)\n')
     end
-	datain = textscan(fid,'%s %s','CommentStyle','%','CollectOutput',1); % 'HeaderLines',1,
+	datain = textscan(fid,'%s %s','CommentStyle','#','CollectOutput',1); % 'HeaderLines',1,
 case 'ops' % Read the operations input file:
     if bevocal
         fprintf(1,'Need to format %s (Operations input file) as: Name LinkingCode Keywords\n',INPfile)
@@ -92,7 +91,7 @@ case 'ops' % Read the operations input file:
         fprintf(1,'Use whitespace as a delimiter and \\n for new lines...\n')
         fprintf(1,'(Be careful that no additional whitespace is in any fields...)\n')
     end
-    datain = textscan(fid,'%s %s %s','CommentStyle','%','CollectOutput',1);    
+    datain = textscan(fid,'%s %s %s','CommentStyle','#','CollectOutput',1);    
 case 'mops' % Read the master operations input file:
     if bevocal
         fprintf(1,'Need to format %s (Master Operations input file) as: MasterCode MasterLabel\n',INPfile)
@@ -100,7 +99,7 @@ case 'mops' % Read the master operations input file:
         fprintf(1,'Use whitespace as a delimiter and \\n for new lines...\n')
         fprintf(1,'(Be careful that no additional whitespace is in any fields...)\n')
     end
-    datain = textscan(fid,'%s %s','CommentStyle','%','CollectOutput',1);
+    datain = textscan(fid,'%s %s','CommentStyle','#','CollectOutput',1);
 end
 fclose(fid);
 
@@ -220,8 +219,8 @@ case 'ts' % Prepare toadd cell for time series
 
         catch emsg
             fprintf(1,'%s\n',emsg.message)
-            error(sprintf(['Could not read the data file for ''%s''.' ...
-                                    'Check that it''s in Matlab''s path.'],timeseries(j).Filename))
+            error(['Could not read the data file for ''%s''.' ...
+                                    'Check that it''s in Matlab''s path.'],timeseries(j).Filename)
         end
         toadd{j} = sprintf('(''%s'',''%s'',%u,''%s'')',esc(timeseries(j).Filename),esc(timeseries(j).Keywords),timeseries(j).Length,timeseries(j).Data);
         
@@ -229,7 +228,7 @@ case 'ts' % Prepare toadd cell for time series
             nsubplots = min(nits,5);
             subplot(nsubplots,1,mod(j-1,nsubplots)+1);
             plot(x,'-k'); xlim([1,length(x)]);
-            titletext = sprintf('[%u/%u] %s (%u), keywords = %s --- read\n',j,nits,timeseries(j).Filename,timeseries(j).Length,timeseries(j).Keywords);
+            titletext = sprintf('\n[%u/%u] %s (%u), keywords = %s --- read',j,nits,timeseries(j).Filename,timeseries(j).Length,timeseries(j).Keywords);
             title(titletext,'interpreter','none');
             fprintf(1,titletext)
             pause(0.2); % wait 0.2 seconds
@@ -257,7 +256,7 @@ case 'ops' % Prepare toadd cell for operations
         end
     end
 end
-if bevocal, fprintf(1,'done.\n'); end
+if bevocal, fprintf(1,'\ndone.\n'); end
 
 
 % Check for duplicates
@@ -282,7 +281,7 @@ if all(isduplicate)
     return
 elseif sum(isduplicate) > 0
     if bevocal
-        fprintf(1,'I found %u duplicate %s already in the database %s...?!\n',sum(isduplicate),thewhat,dbname)
+        fprintf(1,'I found %u duplicate %s already in the database %s!\n',sum(isduplicate),thewhat,dbname)
         fprintf(1,'There are %u new %s to add to %s...\n',sum(~isduplicate),thewhat,dbname)
     end
 end
@@ -307,7 +306,7 @@ case 'mops'
 end
 fprintf(1,' done.\n')
 
-% Add new entries to the Results table where the TIMESERIES (ts_id) doesn't already exist
+% Add new entries to the Results table
 if ~strcmp(importwhat,'mops')
     resultstic = tic;
     if bevocal
@@ -323,8 +322,7 @@ if ~strcmp(importwhat,'mops')
     end
     if ~isempty(emsg),
         fprintf(1,' error. This is really not good.\n');
-        fprintf(1,'%s\n',emsg);
-        keyboard
+        RA_keyboard
     else
         if bevocal, fprintf(1,' initialized in %s!!\n',benrighttime(toc(resultstic),1)); end
     end
@@ -383,12 +381,13 @@ else
         end
     end
     nkw = length(ukws); % the number of unique keywords in the new set of time series
-    if bevocal, fprintf(1,'\nI found %u unique keywords in the %s in %s...',nkw,thewhat,INPfile); end
+    if bevocal, fprintf(1,'\nI found %u unique keywords in the %u new %s in %s...',nkw,sum(~isduplicate),thewhat,INPfile); end
 
     % How many overlap with existing keywords??
     allkws = mysql_dbquery(dbc,sprintf('SELECT Keyword FROM %s',thektable));
     if ~isempty(allkws) % the table may be empty, in which case all keywords will be new
-        isnew = cellfun(@(x)~isempty(x),regexp(ukws,allkws,'ignorecase')); % ignore case for keywords
+        isnew = ~ismember(ukws,allkws);
+        % cellfun(@(x)~isempty(x),regexp(ukws,allkws,'ignorecase')); % ignore case for keywords
     else
         isnew = ones(nkw,1); % all are new
     end
@@ -396,7 +395,7 @@ else
     if sum(isnew) > 0
         if bevocal
             fprintf(1,['\nIt turns out that %u keywords are completely new and will be added ' ...
-                        'to the %s table in %s'],sum(isnew),thektable,dbname)
+                        'to the %s table in %s...'],sum(isnew),thektable,dbname)
         end
         % Add the new keywords to the Keywords table
         insertstring = sprintf('INSERT INTO %s (Keyword,NumOccur) VALUES',thektable);
@@ -406,7 +405,7 @@ else
             toadd{k} = sprintf('(''%s'',0)',ukws{fisnew(k)});
         end
         SQL_add_chunked(dbc,insertstring,toadd);
-        fprintf(1,' added %u new keywords!\n',nkw)
+        fprintf(1,' added %u new keywords!\n',sum(isnew))
     else
         if bevocal
             fprintf(1,['\nIt turns out that all new keywords already exist in ' ...
@@ -421,21 +420,19 @@ else
     % allkws, allids
     switch importwhat
     case 'ts'
-        allnames = bencat({timeseries.Filename},',','''');
+        allnames = bencat({timeseries(~isduplicate).Filename},',','''');
     case 'ops'
-        allnames = bencat({operation.Name},',','''');
+        allnames = bencat({operation(~isduplicate).Name},',','''');
     end
     ourids = mysql_dbquery(dbc,sprintf('SELECT %s FROM %s WHERE %s IN (%s)',theid,thetable,thename,allnames));
     ourids = vertcat(ourids{:}); % ids matching FileNames/OpNames
     ourkids = mysql_dbquery(dbc,sprintf('SELECT %s FROM %s WHERE Keyword IN (%s)',thekid,thektable,bencat(ukws,',','''')));
     ourkids = vertcat(ourkids{:}); % ids matching FileNames/OpNames
     nkwrels = sum(cellfun(@(x)length(x),kwsplit)); % number of keyword relationships in the input file
-    addcell = cell(nkwrels,1);
-    ii = 1;
-    for i = 1:nits
+    addcell = {};
+    for i = 1:length(kwsplit)
         for j = 1:length(kwsplit{i})
-            addcell{ii} = sprintf('(%u,%u)',ourids(i),ourkids(strcmp(kwsplit{i}{j},ukws)));
-            ii = ii + 1;
+            addcell{end+1} = sprintf('(%u,%u)',ourids(i),ourkids(strcmp(kwsplit{i}{j},ukws)));
         end
     end
     SQL_add_chunked(dbc,sprintf('INSERT INTO %s (%s,%s) VALUES',thereltable,theid,thekid),addcell); % add them all in chunks
@@ -451,7 +448,7 @@ else
         [~,emsg] = mysql_dbexecute(dbc, UpdateString);
         if ~isempty(emsg)
             fprintf(1,'\n Error updating keyword count in %s',thektable)
-            keyboard
+            RA_keyboard
         end
     end
     % for k = 1:nkw % for each unique keyword in the keyword table...
@@ -463,11 +460,11 @@ else
     %                             'WHERE Keyword = ''%s'''],thektable,SelectCount,ukws{k});
     %     [~,emsg] = mysql_dbexecute(dbc, UpdateString);
     %     if ~isempty(emsg)
-    %         keyboard
+    %         RA_keyboard
     %         fprintf(1,'\n Error updating keyword count in %s',thektable)
     %     end
     % end
-    fprintf(1,'done.\n')
+    fprintf(1,' done.\n')
 end
 
 % Update master/operation links
@@ -502,7 +499,9 @@ if ismember(importwhat,{'mops','ops'}) % there may be new links
         					'WHERE mop_id = %u'],M_ids(k),M_ids(k));
     	[rs,emsg] = mysql_dbexecute(dbc, UpdateString);
     	if ~isempty(emsg)
-    		fprintf(1,'Error counting NPointTo operations for mop_id = %u\n',M_ids(k)); keyboard
+    		fprintf(1,'Error counting NPointTo operations for mop_id = %u\n',M_ids(k));
+            fprintf(1,'%s\n',emsg)
+            keyboard
     	end
     end
 end
@@ -510,6 +509,6 @@ end
 %% Close database
 SQL_closedatabase(dbc)
 
-fprintf('All tasks completed reading %s for %s into %s in %s.\n',INPfile,thewhat,dbname,benrighttime(toc(ticker)));
+fprintf('All tasks completed reading %s for adding %u %s into %s in %s.\n',INPfile,sum(~isduplicate),thewhat,dbname,benrighttime(toc(ticker)));
 
 end

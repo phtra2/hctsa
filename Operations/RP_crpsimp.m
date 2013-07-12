@@ -4,7 +4,6 @@ function out = RP_crpsimp(y,m,tau,eps,dist)
 % y should be z-scored
 % Ben Fulcher, October 2009
 
-
 %% How to deal with long time series
 % Now, because this only really works well for short time series, which is a bit
 % of a pity, we have a few options:
@@ -15,8 +14,9 @@ function out = RP_crpsimp(y,m,tau,eps,dist)
 % could produce some spurious recurrences... I'll do that for now...
 
 % take first 2000 points...
-if length(y)>2000;
+if length(y) > 2000;
     y = y(1:2000);
+    fprintf(1,'Analyzing the first 2000 points of the input time series\n')
 end
 N = length(y);
 
@@ -28,7 +28,7 @@ if strcmp(tau,'ac')
 elseif strcmp(tau,'mi') || isempty(tau)
     tau = CO_fmmi(y);
 end
-if tau>N/10
+if tau > N/10
     tau = floor(N/10);
 end
 
@@ -50,8 +50,7 @@ else
     dists = {'maxnorm','euclidean','minnorm','nrmnorm','rr','fan',...
         'inter','omatrix','opattern','distance'};
     if ~ismember(dists,dist)
-        disp('Invalid distance measure')
-        return
+        error('Invalid distance measure')
     end
 end
 
@@ -116,7 +115,6 @@ out.rec2 = rqa(10); % recurrence time of the 2nd type
 % % Can't be bothered, actually...!
 % % x = rpl*(1-sqrt((1:4)/5));
 % % bins = zeros(5,1);
-% % keyboard
 % % bins(1) = length(find());
 
 

@@ -16,7 +16,6 @@ catch emsg
     fprintf(1,'%s\n',emsg)
 end
 
-
 % 2. Set up the database:
 fprintf(1,'Setting up the database now--NB: you need to have root access to a mySQL server to do this\n')
 % Walks the user through creating the database from a root account and sets up a user account and password
@@ -46,4 +45,4 @@ cd ../
 fprintf(1,'Oh my goodness, everything compiled fine. The database, %s, is ready for time series to be added using SQL_add...!\n',dbname)
 
 % Attempt to add a time series
-% SQL_add('ts','INP_ts.txt')
+% SQL_add('ts','INP_test_ts.txt')

@@ -6,13 +6,13 @@ function out = MS_fnn(y,de,tau,th,kth,justbest,bestp)
 %% INPUTS
 
 % embedding dimension(s), de
-if nargin<2 || isempty(de)
+if nargin < 2 || isempty(de)
   de = 1:10;
 %   disp(['de = ',int2str(de(1)),':',int2str(de(end))]);
 end
 
 % Time delay, tau
-if nargin<3 || isempty(tau)
+if nargin < 3 || isempty(tau)
     tau = 1;
 %   tau = firstzero(y);
 %   disp(['tau = ',int2str(tau)]);
@@ -24,23 +24,23 @@ elseif strcmp(tau,'mi')
 end
 
 % A distance threshold for neighbours
-if nargin<4
+if nargin < 4
   th = 5;
 %   disp(['th = ',int2str(th)]);
 end
 
 % Distance to next points
-if nargin<5
+if nargin < 5
   kth = 1;
 %   disp(['kth = ',int2str(kth)]);
 end
 
 % (Actually better to use MS_unfolding now -- does a near-identical thing
 % to this...)
-if nargin<6 || isempty(justbest)
+if nargin < 6 || isempty(justbest)
     justbest = 0;
 end
-if nargin<7 || isempty(bestp)
+if nargin < 7 || isempty(bestp)
     bestp = 0.05; % first time under 5% of neighest neighbours
 end
 
@@ -93,8 +93,8 @@ for t=tau
     d1=rms(X(:,(kth+1):nx)'-X(:,ind+1)');
 
     %exclude any coincident points
-    d1(d0==0)=[];
-    d0(d0==0)=[];
+    d1(d0 == 0)=[];
+    d0(d0 == 0)=[];
     
     %calculate the proportion fnn
     ifnn=sum((d1./d0)>th)/length(d0);
