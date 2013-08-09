@@ -1,11 +1,61 @@
-function out = MF_steps_ahead(y,model,order,maxsteps)
-% Given a model and order, searches from 1 step-ahead to <maxsteps>-ahead
-% predictions and looks at the variation
-% Ben Fulcher 17/2/2010
+% MF_steps_ahead
+% 
+% Given a model, characterizes the variation in goodness of model predictions
+% across a range of prediction lengths, l, which is made to vary from
+% 1-step ahead to maxsteps steps-ahead predictions.
+% 
+% Models are fit using code from Matlab's System Identification Toolbox:
+% (i) AR models using the ar function,
+% (ii) ARMA models using armax code, and
+% (iii) state-space models using n4sid code.
+% 
+% The model is fitted on the full time series and then used to predict the same
+% data.
+% 
+% INPUTS:
+% y, the input time series
+% 
+% model, the time-series model to fit: 'ar', 'arma', or 'ss'
+% 
+% order, the order of the model to fit
+% 
+% maxsteps, the maximum number of steps ahead to predict
+% 
+% Outputs include the errors, for prediction lengths l = 1, 2, ..., maxsteps,
+% returned for each model relative to the best performance from basic null
+% predictors, including sliding 1- and 2-sample mean predictors and simply
+% predicting each point as the mean of the full time series. Additional outputs
+% quantify how the errors change as the prediction length increases from l = 1,
+% ..., maxsteps (relative to a simple predictor).
+%
+% ------------------------------------------------------------------------------
+% Copyright (C) 2013,  Ben D. Fulcher <ben.d.fulcher@gmail.com>,
+% <http://www.benfulcher.com>
+%
+% If you use this code for your research, please cite:
+% B. D. Fulcher, M. A. Little, N. S. Jones., "Highly comparative time-series
+% analysis: the empirical structure of time series and their methods",
+% J. Roy. Soc. Interface 10(83) 20130048 (2010). DOI: 10.1098/rsif.2013.0048
+%
+% This function is free software: you can redistribute it and/or modify it under
+% the terms of the GNU General Public License as published by the Free Software
+% Foundation, either version 3 of the License, or (at your option) any later
+% version.
+% 
+% This program is distributed in the hope that it will be useful, but WITHOUT
+% ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+% FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+% details.
+% 
+% You should have received a copy of the GNU General Public License along with
+% this program.  If not, see <http://www.gnu.org/licenses/>.
+% ------------------------------------------------------------------------------
 
+function out = MF_steps_ahead(y,model,order,maxsteps)
+% Ben Fulcher, 17/2/2010
 
 %% Preliminaries
-N = length(y);
+N = length(y); % length of the input time series
 
 %% Inputs
 % y, column vector of equally-spaced time series measurements
@@ -38,16 +88,21 @@ switch model
         if strcmp(order,'best') % fit 'best' AR model; by sbc
             % Use arfit software to retrieve the optimum ar order by some
             % criterion (Schwartz's Bayesian Criterion, SBC)
-            % Uses MATLAB code from ARfit
+            % Uses Matlab code from ARfit
             % http://www.gps.caltech.edu/~tapio/arfit/
-            [west, Aest, Cest, SBC, FPE, th] = arfit(ytrain.y, 1, 10, 'sbc', 'zero');
+            [west, Aest, Cest, SBC, FPE, th] = ARFIT_arfit(ytrain.y, 1, 10, 'sbc', 'zero');
             order = length(Aest); 
         end
         m = ar(ytrain,order);
+        
     case 'arma'
         m = armax(ytrain,order);
+        
     case 'ss'
         m = n4sid(ytrain,order);
+        
+    otherwise
+        error('Unknown model ''%s''',model);
 end
 
 
@@ -71,7 +126,7 @@ sm2.rmserrs = zeros(maxsteps,1);
 sm2.mabserrs = zeros(maxsteps,1);
 sm2.ac1s = zeros(maxsteps,1);
 
-for i=1:maxsteps
+for i = 1:maxsteps
     % (1) *** Model m ***
     yp = predict(m, ytest, steps(i)); % across test set
 
@@ -81,7 +136,7 @@ for i=1:maxsteps
     
     mf.rmserrs(i) = sqrt(mean(mres.^2));
     mf.mabserrs(i) = mean(abs(mres));
-    mf.ac1s(i) = CO_autocorr(mres,1);
+    mf.ac1s(i) = CO_AutoCorr(mres,1);
     
     % (2) *** Sliding mean 1 ***
     % A sliding mean of length 1
@@ -91,7 +146,7 @@ for i=1:maxsteps
     
     sm1.rmserrs(i) = sqrt(mean(mres.^2));
     sm1.mabserrs(i) = mean(abs(mres));
-    sm1.ac1s(i) = CO_autocorr(mres,1);
+    sm1.ac1s(i) = CO_AutoCorr(mres,1);
     
     % (3) *** Sliding mean 2 ***
     % A sliding mean of length 2
@@ -108,7 +163,7 @@ for i=1:maxsteps
     
     sm2.rmserrs(i) = sqrt(mean(mres.^2));
     sm2.mabserrs(i) = mean(abs(mres));
-    sm2.ac1s(i) = CO_autocorr(mres,1);
+    sm2.ac1s(i) = CO_AutoCorr(mres,1);
 end
 
 % % (3) SMINF
@@ -116,7 +171,7 @@ end
 sminf.res = yy - mean(yy);
 sminf.rmserr = sqrt(mean(sminf.res.^2));
 sminf.mabserr = mean(abs(sminf.res));
-sminf.ac1 = CO_autocorr(sminf.res,1);
+sminf.ac1 = CO_AutoCorr(sminf.res,1);
 
 
 %% Get some output statistics
@@ -130,10 +185,15 @@ sminf.ac1 = CO_autocorr(sminf.res,1);
 
 for i = 1:maxsteps
     % all relative to best dumb
-    eval(['out.rmserr_' num2str(i) ' = ' num2str(mf.rmserrs(i)/min([sm1.rmserrs(i) sm2.rmserrs(i) sminf.rmserr])) ';']);
-    eval(['out.mabserr_' num2str(i) ' = ' num2str(mf.mabserrs(i)/min([sm1.mabserrs(i) sm2.mabserrs(i) sminf.mabserr])) ';']);
+    mirms = mf.rmserrs(i)/min([sm1.rmserrs(i), sm2.rmserrs(i), sminf.rmserr]); % rms error
+    miabs = mf.mabserrs(i)/min([sm1.mabserrs(i), sm2.mabserrs(i), sminf.mabserr]); % absolute error
+
+    eval(sprintf('out.rmserr_%u = mirms;',i));
+    eval(sprintf('out.mabserr_%u = miabs;',i));
+    
     % raw ac1 values -- ratios don't really make sense
-    eval(['out.ac1_' num2str(i) ' = ' num2str(abs(mf.ac1s(i))) ';']);
+    makeitso = abs(mf.ac1s(i));
+    eval(sprintf('out.ac1_%u = makeitso;',i));
 end
 
 out.meandiffrmsabs = abs(mean(mf.rmserrs-mf.mabserrs));

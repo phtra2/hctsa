@@ -1,23 +1,79 @@
+% MD_hrv_classic
+% 
+% Packages up a bunch of classic heart rate variability (HRV) statistics and
+% applies them to the input time series.
+% 
+% Assumes an NN/RR time series in units of seconds.
+% 
+% INPUTS:
+% y, the input time series.
+% 
+% Includes:
+%  (i) pNNx
+%  cf. "The pNNx files: re-examining a widely used heart rate variability
+%           measure", J.E. Mietus et al., Heart 88(4) 378 (2002)
+% 
+%  (ii) Power spectral density ratios in different frequency ranges
+%   cf. "Heart rate variability: Standards of measurement, physiological
+%       interpretation, and clinical use",
+%       M. Malik et al., Eur. Heart J. 17(3) 354 (1996)
+% 
+%  (iii) Triangular histogram index, and
+%  
+%  (iv) Poincare plot measures
+%  cf. "Do existing measures of Poincare plot geometry reflect nonlinear
+%       features of heart rate variability?"
+%       M. Brennan, et al., IEEE T. Bio.-Med. Eng. 48(11) 1342 (2001)
+%  
+% Code is heavily derived from that provided by Max A. Little:
+% http://www.maxlittle.net/
+% 
+% ------------------------------------------------------------------------------
+% Copyright (C) 2013,  Ben D. Fulcher <ben.d.fulcher@gmail.com>,
+% <http://www.benfulcher.com>
+%
+% If you use this code for your research, please cite:
+% B. D. Fulcher, M. A. Little, N. S. Jones., "Highly comparative time-series
+% analysis: the empirical structure of time series and their methods",
+% J. Roy. Soc. Interface 10(83) 20130048 (2010). DOI: 10.1098/rsif.2013.0048
+%
+% This function is free software: you can redistribute it and/or modify it under
+% the terms of the GNU General Public License as published by the Free Software
+% Foundation, either version 3 of the License, or (at your option) any later
+% version.
+% 
+% This program is distributed in the hope that it will be useful, but WITHOUT
+% ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+% FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+% details.
+% 
+% You should have received a copy of the GNU General Public License along with
+% this program.  If not, see <http://www.gnu.org/licenses/>.
+% ------------------------------------------------------------------------------
+
 function out = MD_hrv_classic(y)
-% Packages up classic HRV operations that calculate classical HRV analysis measures from a given NN/RR time series in units of seconds.
-% Adapted from code emailed from Max Little on 26/1/2009. Implemented on 12/4/2010. Yep, a typically efficient turn-around time of over one year.
 % Ben Fulcher, 12/4/2010.
 
 % Standard defaults
 diffy = diff(y);
-N = length(y);
+N = length(y); % time-series length
 
 %% Calculate pNNx percentage
 % pNNx: recommendation as per Mietus et. al. 2002, "The pNNx files: ...", Heart
 % strange to do this for a z-scored time series...
 % pnntime = 20;
-Dy = abs(diffy) * 1000;
+
+Dy = abs(diffy) * 1000; 
+
+% Anonymous function to do the PNNx calcualtion:
+PNNxfn = @(x) sum(Dy > x)/(N-1);
+
 % exceed  = sum(Dy > pnntime);
-out.pnn5  = sum(Dy > 5)/(N-1); % proportion of difference magnitudes greater than 0.005*sigma
-out.pnn10 = sum(Dy > 10)/(N-1);
-out.pnn20 = sum(Dy > 20)/(N-1);
-out.pnn30 = sum(Dy > 30)/(N-1);
-out.pnn40 = sum(Dy > 40)/(N-1);
+out.pnn5  = PNNxfn(5); %sum(Dy > 5)/(N-1); % proportion of difference magnitudes greater than 0.005*sigma
+out.pnn10 = PNNxfn(10); %sum(Dy > 10)/(N-1);
+out.pnn20 = PNNxfn(20); %sum(Dy > 20)/(N-1);
+out.pnn30 = PNNxfn(30); %sum(Dy > 30)/(N-1);
+out.pnn40 = PNNxfn(40); %sum(Dy > 40)/(N-1);
 
 % Calculate PSD
 % [Pxx, F] = psd(series,1024,1,hanning(1024),512);
@@ -52,7 +108,6 @@ rmssd = std(diffy); % std of differenced series
 sigma = std(y); % should be 1 for zscored time series
 out.SD1 = 1/sqrt(2) * rmssd * 1000;
 out.SD2 = sqrt(2 * sigma^2 - (1/2) * rmssd^2) * 1000;
-
 
 
 end

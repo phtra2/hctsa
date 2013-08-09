@@ -1,7 +1,53 @@
+% NL_embed_PCA
+% 
+% Reconstructs the time series as a time-delay embedding, and performs Principal
+% Components Analysis on the result using princomp code from
+% Matlab's Bioinformatics Toolbox.
+% 
+% This technique is known as singular spectrum analysis
+% 
+% "Extracting qualitative dynamics from experimental data"
+% D. S. Broomhead and G. P. King, Physica D 20(2-3) 217 (1986)
+% 
+% INPUTS:
+% y, the input time series
+% 
+% tau, the time-delay, can be an integer or 'ac', or 'mi' for first
+%               zero-crossing of the autocorrelation function or first minimum
+%               of the automutual information, respectively
+%               
+% m, the embedding dimension
+% 
+% Outputs are various statistics summarizing the obtained eigenvalue distribution.
+% 
+% The suggestion to implement this idea was provided by Siddarth Arora.
+% (Siddharth Arora, <arora@maths.ox.ac.uk>)
+% 
+% ------------------------------------------------------------------------------
+% Copyright (C) 2013,  Ben D. Fulcher <ben.d.fulcher@gmail.com>,
+% <http://www.benfulcher.com>
+%
+% If you use this code for your research, please cite:
+% B. D. Fulcher, M. A. Little, N. S. Jones., "Highly comparative time-series
+% analysis: the empirical structure of time series and their methods",
+% J. Roy. Soc. Interface 10(83) 20130048 (2010). DOI: 10.1098/rsif.2013.0048
+%
+% This function is free software: you can redistribute it and/or modify it under
+% the terms of the GNU General Public License as published by the Free Software
+% Foundation, either version 3 of the License, or (at your option) any later
+% version.
+% 
+% This program is distributed in the hope that it will be useful, but WITHOUT
+% ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+% FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+% details.
+% 
+% You should have received a copy of the GNU General Public License along with
+% this program.  If not, see <http://www.gnu.org/licenses/>.
+% ------------------------------------------------------------------------------
+
 function out = NL_embed_PCA(y,tau,m)
-% Suggestion by Siddarth Arora to embed and look at PCA reduction
-% Bioinformatics toolbox (pca code)
-% Ben Fulcher 25/2/2010
+% Ben Fulcher, 25/2/2010
 
 if nargin < 2 || isempty(tau)
     tau = 'ac'; % embed by first zero-crossing of autocorrelation function
@@ -12,10 +58,11 @@ if nargin < 3 || isempty(m)
 end
 
 % embed the signal via time-delay method
-y_embed = benembed(y,tau,m,0);
+y_embed = BF_embed(y,tau,m,0);
 
 if isnan(y_embed);
     % embedding parameters are unsuitable (likely that tau is too long...)
+    fprintf(1,'Embedding parameters are not suitable for this time series\n');
     out = NaN; return
 end
 

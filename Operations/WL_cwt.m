@@ -1,7 +1,60 @@
-function out = WL_cwt(y, wname, maxscale)
-% Uses Wavelet, Statistics Toolboxes in MATLAB
-% Ben Fulcher 26/1/2010
+% WL_cwt
+% 
+% Applies a continuous wavelet transform to the time series using the function
+% cwt from Matlab's Wavelet Toolbox.
+% 
+% INPUTS:
+% y, the input time series
+% 
+% wname, the wavelet name, e.g., 'db3' (Daubechies wavelet), 'sym2' (Symlet),
+%                           etc. (see Wavelet Toolbox Documentation for all
+%                           options)
+% 
+% maxscale, the maximum scale of wavelet analysis.
+% 
+% 
+% Outputs from this function are statistics on the coefficients, entropy, and
+% results of coefficients summed across scales.
+% 
+% ------------------------------------------------------------------------------
+% Copyright (C) 2013,  Ben D. Fulcher <ben.d.fulcher@gmail.com>,
+% <http://www.benfulcher.com>
+%
+% If you use this code for your research, please cite:
+% B. D. Fulcher, M. A. Little, N. S. Jones., "Highly comparative time-series
+% analysis: the empirical structure of time series and their methods",
+% J. Roy. Soc. Interface 10(83) 20130048 (2010). DOI: 10.1098/rsif.2013.0048
+%
+% This function is free software: you can redistribute it and/or modify it under
+% the terms of the GNU General Public License as published by the Free Software
+% Foundation, either version 3 of the License, or (at your option) any later
+% version.
+% 
+% This program is distributed in the hope that it will be useful, but WITHOUT
+% ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+% FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+% details.
+% 
+% You should have received a copy of the GNU General Public License along with
+% this program.  If not, see <http://www.gnu.org/licenses/>.
+% ------------------------------------------------------------------------------
 
+function out = WL_cwt(y, wname, maxscale)
+% Ben Fulcher, 26/1/2010
+
+%% Check that a Wavelet Toolbox license exists:
+a = license('test','wavelet_toolbox');
+if a == 0
+    error('This function requires Matlab''s Wavelet Toolbox');
+end
+% Try to check out a license:
+[lic_free,~] = license('checkout','wavelet_toolbox');
+if lic_free == 0
+    error('Could not obtain a license for Matlab''s Wavelet Toolbox');
+end
+
+% Check inputs:
+doplot = 0; % plot outputs to figures
 N = length(y); % length of the time series
 
 if nargin < 2 || isempty(wname)
@@ -22,11 +75,13 @@ SC = 100*S./sum(S(:)); % scaled power
 % These SC values (percentage of energy in each coefficient) are what are
 % displayed in a scalogram (c.f., wscalogram function)
 
-% subplot(3,1,1)
-% plot(y);
-% subplot(3,1,2:3);
-% pcolor(SC); shading interp;
-% keyboard
+if doplot
+    figure('color','w'); box('on');
+    subplot(3,1,1)
+    plot(y);
+    subplot(3,1,2:3);
+    pcolor(SC); shading interp;
+end
 
 %% Get statistics from CWT
 Nentries = size(coeffs,1)*size(coeffs,2); % number of entries in coeffs matrix
@@ -45,18 +100,21 @@ out.medianSC = median(SC(:));
 out.maxSC = max(SC(:));
 out.maxonmedSC = max(SC(:))/median(SC(:));
 
-% proportion of coeffs matrix over ___ maximum (thresholded)
-out.pover99 = sum(SC(SC > 0.99*max(SC(:))))/Nentries;
-out.pover98 = sum(SC(SC > 0.98*max(SC(:))))/Nentries;
-out.pover95 = sum(SC(SC > 0.95*max(SC(:))))/Nentries;
-out.pover90 = sum(SC(SC > 0.90*max(SC(:))))/Nentries;
-out.pover80 = sum(SC(SC > 0.80*max(SC(:))))/Nentries;
+% Proportion of coeffs matrix over ___ maximum (thresholded)
+poverfn = @(x) sum(SC(SC > x*max(SC(:))))/Nentries;
+out.pover99 = poverfn(0.99);
+out.pover98 = poverfn(0.88);
+out.pover95 = poverfn(0.95);
+out.pover90 = poverfn(0.90);
+out.pover80 = poverfn(0.80);
 
 % Distribution of scaled power
 % Fit using Statistics Toolbox
 
-% figure('color','w');
-% ksdensity(SC(:));
+if doplot
+    figure('color','w');
+    ksdensity(SC(:));
+end
     
 out.exp_muhat = expfit(SC(:));
 gamma_phat = gamfit(SC(:));
@@ -69,7 +127,6 @@ SC_a = SC./sum(SC(:));
 % compute entropy
 SC_a = SC_a(:);
 out.SC_h = -sum(SC_a.*log(SC_a));
-
 
 %% Weird 2-D entropy idea -- first discretize
 % (i) Discretize the space into nboxes boxes along the time axis
@@ -98,7 +155,7 @@ SSC = sum(SC);
 out.max_ssc = max(SSC);
 out.min_ssc = min(SSC);
 out.maxonmed_ssc = max(SSC)/median(SSC);
-out.pcross_maxssc50 = length(sgnchange(SSC-0.5*max(SSC)))/N;
+out.pcross_maxssc50 = sum(BF_sgnchange(SSC-0.5*max(SSC))) / (N-1);
 out.std_ssc = std(SSC);
 
 %% Stationarity

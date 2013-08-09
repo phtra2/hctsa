@@ -1,12 +1,68 @@
+% WL_scal2frq
+% 
+% Estimates frequency components in a periodic time series using functions from
+% Matlab's Wavelet Toolbox, including the scal2frq function.
+% 
+% INPUTS:
+% y, the input time series
+% 
+% wname, the name of the mother wavelet to analyze the data with: e.g., 'db3',
+%           'sym2', cf. Wavelet Toolbox Documentation for details
+% 
+% amax, the maximum scale / level (can be 'max' to set according to wmaxlev)
+% 
+% delta, the sampling period
+% 
+% Outputs are the level with the highest energy coefficients, the dominant
+% period, and the dominant pseudo-frequency.
+% 
+% Adapted from example in Matlab Wavelet Toolbox documentation. It's kind of a
+% weird idea to apply the method to generic time series.
+% 
+% ------------------------------------------------------------------------------
+% Copyright (C) 2013,  Ben D. Fulcher <ben.d.fulcher@gmail.com>,
+% <http://www.benfulcher.com>
+%
+% If you use this code for your research, please cite:
+% B. D. Fulcher, M. A. Little, N. S. Jones., "Highly comparative time-series
+% analysis: the empirical structure of time series and their methods",
+% J. Roy. Soc. Interface 10(83) 20130048 (2010). DOI: 10.1098/rsif.2013.0048
+%
+% This function is free software: you can redistribute it and/or modify it under
+% the terms of the GNU General Public License as published by the Free Software
+% Foundation, either version 3 of the License, or (at your option) any later
+% version.
+% 
+% This program is distributed in the hope that it will be useful, but WITHOUT
+% ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+% FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+% details.
+% 
+% You should have received a copy of the GNU General Public License along with
+% this program.  If not, see <http://www.gnu.org/licenses/>.
+% ------------------------------------------------------------------------------
+
 function out = WL_scal2frq(y, wname, amax, delta)
-% Ben Fulcher 26/1/2010. Adapted from example in MATLAB wavelet toolbox
-% It's a bit stupid really.
+% Ben Fulcher, 26/1/2010.
+
+%% Preliminaries
+doplot = 0; % plot outputs to figure
+N = length(y); % length of the time series
+
+%% Check that a Wavelet Toolbox license exists:
+a = license('test','wavelet_toolbox');
+if a == 0
+    error('This function requires Matlab''s Wavelet Toolbox');
+end
+% Try to check out a license:
+[lic_free,~] = license('checkout','wavelet_toolbox');
+if lic_free == 0
+    error('Could not obtain a license for Matlab''s Wavelet Toolbox');
+end
 
 %% Check Inputs
-N = length(y); % length of time series
-
 if nargin < 2 || isempty(wname)
-    disp('Wavelet not specified -- using the default db3 wavelet')
+    fprintf(1,'Wavelet not specified -- using the default db3 wavelet\n')
     wname = 'db3';
 end
 
@@ -28,12 +84,12 @@ if maxlevel < amax
     fprintf(1,' changed to maximum level computed with wmaxlev: %u\n',amax);
 end
 
-%% Do your thing.
+%% Do your thing:
 % This example demonstrates that, starting from the periodic function
 % x(t) = 5*sin(5t) + 3*sin(2t) + 2*sin(t), the scal2frq function translates
 % the scales corresponding to the maximum values of the CWT coefficients
 % to pseudo-frequencies ([0.796 0.318 0.159]), which are near to the true
-% frequencies ([5 2 1] / (2*pi) =~ [0.796 0.318 0.159]).
+% frequencies ([5, 2, 1] / (2*pi) =~ [0.796 0.318 0.159]).
 
 % delta = 0.1;
 % wname = 'coif3';
@@ -54,7 +110,10 @@ per = 1./f;
 % Estimate standard deviation of detail coefficients.
 stdc = wnoisest(c,l,scales);
 
-% plot(stdc) % plot them
+if doplot
+    figure('color','w'); box('on');
+    plot(stdc,'k') % plot them
+end
 
 % Compute identified period.
 [~, jmax] = max(stdc); % level with highest energy coefficients
@@ -62,7 +121,5 @@ stdc = wnoisest(c,l,scales);
 out.lmax = jmax; % level with highest energy coefficients
 out.period = per(jmax); % output dominant period
 out.pf = f(jmax); % output dominant pseudo-frequency
-
-
       
 end

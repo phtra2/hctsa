@@ -30,17 +30,17 @@ SQL_create_all_tables;
 fprintf(1,'Populating the database with operations (please be patient)...\n')
 fprintf(1,'Adding Master operations...\n'); moptic = tic;
 SQL_add('mops','Database/INP_mops.txt','',0)
-fprintf(1,'Master operations added in %s.\n',benrighttime(toc(moptic)))
+fprintf(1,'Master operations added in %s.\n',BF_thetime(toc(moptic)))
 fprintf(1,'Adding all operations...\n'); optic = tic;
 SQL_add('ops','Database/INP_ops.txt','',0)
-fprintf(1,'Operations added in %s.\n',benrighttime(toc(optic)))
+fprintf(1,'Operations added in %s.\n',BF_thetime(toc(optic)))
 
 % Attempt to compile the executables in Toolboxes:
 fprintf(1,'Attempting to compile the binary executables needed for evaluating some operations.\n')
 fprintf(1,'Please make sure that mex is set up with the right compilers for this system.\n')
 fprintf(1,'Note that errors here are not the end of the world, but mean that some operations may fail to execute correctly...\n')
 cd Toolboxes
-compile
+compile_mex
 cd ../
 fprintf(1,'Oh my goodness, everything compiled fine. The database, %s, is ready for time series to be added using SQL_add...!\n',dbname)
 

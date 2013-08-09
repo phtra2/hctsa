@@ -1,12 +1,56 @@
-function out = EN_ApEn(y,mnom,rth)
-% I can't find where I obtained this code, but Ben Fulcher didn't write it
+% EN_ApEn
+% 
+% Estimates the Approximate Entropy of the time series, ApEn(m,r).
+% 
+% cf. S. M. Pincus, "Approximate entropy as a measure of system complexity",
+% P. Natl. Acad. Sci. USA, 88(6) 2297 (1991)
+%
+% For more information: http://physionet.org/physiotools/ApEn/
+% 
+% INPUTS:
+% y, the input time series
+% mnom, the embedding dimension
+% rth, the threshold for judging closeness/similarity
+%
+% ------------------------------------------------------------------------------
+% Copyright (C) 2013,  Ben D. Fulcher <ben.d.fulcher@gmail.com>,
+% <http://www.benfulcher.com>
+%
+% If you use this code for your research, please cite:
+% B. D. Fulcher, M. A. Little, N. S. Jones., "Highly comparative time-series
+% analysis: the empirical structure of time series and their methods",
+% J. Roy. Soc. Interface 10(83) 20130048 (2010). DOI: 10.1098/rsif.2013.0048
+%
+% This function is free software: you can redistribute it and/or modify it under
+% the terms of the GNU General Public License as published by the Free Software
+% Foundation, either version 3 of the License, or (at your option) any later
+% version.
+% 
+% This program is distributed in the hope that it will be useful, but WITHOUT
+% ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+% FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+% details.
+% 
+% You should have received a copy of the GNU General Public License along with
+% this program.  If not, see <http://www.gnu.org/licenses/>.
+% ------------------------------------------------------------------------------
 
-% mnom = 1;
-% rth=0.2;
+function out = EN_ApEn(y,mnom,rth)
+% Ben Fulcher cannot remember whether he wrote or obtained this code from
+% somewhere. (Cannot find an original)
+
+% Check inputs, set defaults:
+if nargin < 2 || isempty(mnom)
+    mnom = 1; % m = 1 (default)
+end
+
+if nargin < 3 || isempty(rth)
+    rth = 0.2; % r = 0.2 (default)
+end
+
 r = rth*std(y); % threshold of similarity
 N = length(y);% length of time series
 phi = zeros(2,1);% phi(1)=phi_m, phi(2)=phi_{m+1}
-
 
 for k = 1:2
     m = mnom+k-1; % pattern length

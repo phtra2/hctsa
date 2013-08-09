@@ -1,9 +1,42 @@
+% CO_tc3
+%
+% Computes the tc3 function, a normalized nonlinear autocorrelation, at a
+% given time-delay, tau.
+% Outputs are the raw tc3 expression, its magnitude, the numerator and its magnitude, and
+% the denominator.
+% 
+% INPUTS:
+% y, input time series
+% tau, time lag
+% 
+% See documentation of the TSTOOL package (http://www.physik3.gwdg.de/tstool/)
+% for further details about this function.
+%
+% ------------------------------------------------------------------------------
+% Copyright (C) 2013,  Ben D. Fulcher <ben.d.fulcher@gmail.com>,
+% <http://www.benfulcher.com>
+%
+% If you use this code for your research, please cite:
+% B. D. Fulcher, M. A. Little, N. S. Jones., "Highly comparative time-series
+% analysis: the empirical structure of time series and their methods",
+% J. Roy. Soc. Interface 10(83) 20130048 (2010). DOI: 10.1098/rsif.2013.0048
+%
+% This function is free software: you can redistribute it and/or modify it under
+% the terms of the GNU General Public License as published by the Free Software
+% Foundation, either version 3 of the License, or (at your option) any later
+% version.
+% 
+% This program is distributed in the hope that it will be useful, but WITHOUT
+% ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+% FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+% details.
+% 
+% You should have received a copy of the GNU General Public License along with
+% this program.  If not, see <http://www.gnu.org/licenses/>.
+% ------------------------------------------------------------------------------
+
 function out = CO_tc3(y,tau)
-% Implements the TC3 function
-% This function is mentioned in the documentation for the TSTOOL package
-% (full package available here: http://www.physik3.gwdg.de/tstool/)
-% Input time series, y, and time lag, tau
-% Ben Fulcher 15/11/2009
+% Ben Fulcher, 15/11/2009
 
 %% Set defaults:
 if nargin < 2 || isempty(tau)
@@ -12,10 +45,10 @@ end
 
 % Can set the time lag, tau, to be 'ac' or 'mi'
 if strcmp(tau,'ac')
-    tau = CO_fzcac(y);
+    tau = CO_FirstZero(y,'ac');
     % tau is first zero crossing of the autocorrelation function
 elseif strcmp(tau,'mi')
-    tau = CO_fmmi(y);
+    tau = CO_FirstMin(y,'mi');
     % tau is the first minimum of the automutual information function
 end
 

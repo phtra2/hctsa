@@ -1,6 +1,45 @@
-function out = CO_stickangles(y,method)
-% Analyzes the set of line-of-sight angles between time series points, by
-% treating each data point as a stick protruding from a opaque baseline
+% CO_StickAngles
+% 
+% Analyzes line-of-sight angles between time-series points where each
+% time-series value is treated as a stick protruding from an opaque baseline
+% level. Statistics are returned on the raw time series, where sticks protrude
+% from the zero-level, and the z-scored time series, where sticks
+% protrude from the mean level of the time series.
+% 
+% INPUTS:
+% y, the input time series
+% 
+% Outputs are returned on the obtained sequence of angles, theta, reflecting the
+% maximum deviation a stick can rotate before hitting a stick representing
+% another time point. Statistics include the mean and spread of theta,
+% the different between positive and negative angles, measures of symmetry of
+% the angles, stationarity, autocorrelation, and measures of the distribution of
+% these stick angles.
+% 
+% ------------------------------------------------------------------------------
+% Copyright (C) 2013,  Ben D. Fulcher <ben.d.fulcher@gmail.com>,
+% <http://www.benfulcher.com>
+%
+% If you use this code for your research, please cite:
+% B. D. Fulcher, M. A. Little, N. S. Jones., "Highly comparative time-series
+% analysis: the empirical structure of time series and their methods",
+% J. Roy. Soc. Interface 10(83) 20130048 (2010). DOI: 10.1098/rsif.2013.0048
+%
+% This function is free software: you can redistribute it and/or modify it under
+% the terms of the GNU General Public License as published by the Free Software
+% Foundation, either version 3 of the License, or (at your option) any later
+% version.
+% 
+% This program is distributed in the hope that it will be useful, but WITHOUT
+% ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+% FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+% details.
+% 
+% You should have received a copy of the GNU General Public License along with
+% this program.  If not, see <http://www.gnu.org/licenses/>.
+% ------------------------------------------------------------------------------
+
+function out = CO_StickAngles(y)
 % Ben Fulcher, September 2009
 
 doplot = 0; % can plot output
@@ -9,6 +48,7 @@ N = length(y);
 ix = cell(2,1); %indicies for positive(1) and negative(2) entries of time series vector
 ix{1} = find(y >= 0); % bias here -- 'look up' if on 'ground'
 ix{2} = find(y < 0);
+
 n = zeros(2,1);
 n(1) = length(ix{1})-1; % minus one because the last point has no next one to compare to
 n(2) = length(ix{2})-1; % minus one for same reason
@@ -17,7 +57,7 @@ angles = cell(2,1); % stores the angles
 angles{1} = zeros(n(1),1); % positives (above axis)
 angles{2} = zeros(n(2),1); % negatives (below axis)
 
-% first positive time points: store in angles_p
+% First positive time points: store in angles_p
 for j = 1:2
     for i = 1:n(j)
         % find the next time series point with the same sign as the current one:
@@ -31,9 +71,9 @@ if doplot
     figure('color','w')
     % A few options of what to plot:
     hold off; plot(angles{1},'.k'); hold on
-    plot(angles{2},'.r')
-    hold off; [yp xp] = ksdensity(angles{1});
-    [yn xn] = ksdensity(angles{2});
+    plot(angles{2},'.r'); hold off;
+    [yp, xp] = ksdensity(angles{1});
+    [yn, xn] = ksdensity(angles{2});
     plot(xp,yp,'r'); hold on; plot(xn,yn,'b');
     hist(angles{1},50);
 end
@@ -178,24 +218,24 @@ out.statav5_all_s = statav_s;
 
 %% correlations?
 if ~isempty(zangles{1});
-    out.tau_p = CO_fzcac(zangles{1});
-    out.ac1_p = CO_autocorr(zangles{1},1);
-    out.ac2_p = CO_autocorr(zangles{1},2);
+    out.tau_p = CO_FirstZero(zangles{1},'ac');
+    out.ac1_p = CO_AutoCorr(zangles{1},1);
+    out.ac2_p = CO_AutoCorr(zangles{1},2);
 else
     out.tau_p = NaN; out.ac1_p = NaN; out.ac2_p = NaN;
 end
 
 if ~isempty(zangles{2});
-    out.tau_n = CO_fzcac(zangles{2});
-    out.ac1_n = CO_autocorr(zangles{2},1);
-    out.ac2_n = CO_autocorr(zangles{2},2);
+    out.tau_n = CO_FirstZero(zangles{2},'ac');
+    out.ac1_n = CO_AutoCorr(zangles{2},1);
+    out.ac2_n = CO_AutoCorr(zangles{2},2);
 else
     out.tau_n=NaN; out.ac1_n = NaN; out.ac2_n = NaN;
 end
 
-out.tau_all = CO_fzcac(zallangles);
-out.ac1_all = CO_autocorr(zallangles,1);
-out.ac2_all = CO_autocorr(zallangles,2);
+out.tau_all = CO_FirstZero(zallangles,'ac');
+out.ac1_all = CO_AutoCorr(zallangles,1);
+out.ac2_all = CO_AutoCorr(zallangles,2);
 
 %% What does the distribution look like?
 % Some quantiles and moments
@@ -225,10 +265,11 @@ else
     out.skewness_n = NaN; out.kurtosis_n = NaN;
 end
 
-out.q1_all = quantile(zallangles,0.01);
-out.q10_all = quantile(zallangles,0.1);
-out.q90_all = quantile(zallangles,0.9);
-out.q99_all = quantile(zallangles,0.99);
+F_quantz = @(x) quantile(zallangles,x);
+out.q1_all = F_quantz(0.01);
+out.q10_all = F_quantz(0.1);
+out.q90_all = F_quantz(0.9);
+out.q99_all = F_quantz(0.99);
 out.skewness_all = skewness(allangles);
 out.kurtosis_all = kurtosis(allangles);
 
@@ -240,7 +281,7 @@ function [statavmean, statavstd] = sub_statav(x,n)
     % Require 2*n points (i.e., minimum of 2 in each partition) to do a
     % statav that even has a chance of being meaningful.
     NN = length(x);
-    if NN<2*n % not long enough
+    if NN < 2*n % not long enough
         statavmean = NaN; statavstd = NaN;
         return
     end
