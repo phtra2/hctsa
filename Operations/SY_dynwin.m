@@ -14,25 +14,32 @@ for i = 1:length(nsegr)
     nseg = nsegr(i);
     wlen = floor(length(y)/nseg); % window length
     inc = floor(wlen/nmov); % increment to move at each step
-    if inc == 0; inc = 1; end
+    if inc == 0; inc = 1; end % increment rounded down to zero, prop it up
 
     nsteps = (floor((length(y)-wlen)/inc)+1);
-    qs = zeros(nsteps,nfeat);
-
+    % qs = struct;
+    qs = zeros(nsteps,nfeat);    
+    
     for j = 1:nsteps
         ysub = y((j-1)*inc+1:(j-1)*inc+wlen);
         taul = CO_fzcac(ysub);
-%             ysubrsl=resample(ysub,1,taul); % resample at tau
-%             ysubrsg=resample(ysub,1,taug); % resample
         
+        % qs.mean(j) = mean(ysub); % mean
+        % qs.std(j) = std(ysub); % standard deviation
+        % qs.skew(j) = skewness(ysub); % skewness
+        % qs.kurt(j) = kurtosis(ysub); % kurtosis
+        % qs.apen(j) = EN_ApEn(ysub,1,0.2); % ApEn_1
+        % qs.sampen(j) = EN_sampenc(ysub,1,0.2); % SampEn_1
+        % qs.ac1(j) = CO_autocorr(ysub,1); % AC1
+        % qs.ac2(j) = CO_autocorr(ysub,2); % AC2
+        % qs.tauglob(j) = CO_autocorr(ysub,taug); % AC_glob_tau
+        % qs.tauloc(j) = CO_autocorr(ysub,taul); % AC_loc_tau
+        % qs.taul(j) = taul;
+
         qs(j,1) = mean(ysub); % mean
         qs(j,2) = std(ysub); % standard deviation
         qs(j,3) = skewness(ysub); % skewness
         qs(j,4) = kurtosis(ysub); % kurtosis
-%             qs(j,5)=EN_ApEn(ysubrsg,1,0.15); % ApEn_taug
-%             qs(j,6)=EN_sampenc(ysubrsg,1,0.15); % SampEn_taug
-%             qs(j,7)=EN_ApEn(ysubrsl,taul,0.15); % ApEn_taul
-%             qs(j,8)=EN_sampenc(ysubrsl,taul,0.15); % SampEn_taul
         qs(j,5) = EN_ApEn(ysub,1,0.2); % ApEn_1
         qs(j,6) = EN_sampenc(ysub,1,0.2); % SampEn_1
         qs(j,7) = CO_autocorr(ysub,1); % AC1
@@ -41,28 +48,15 @@ for i = 1:length(nsegr)
         qs(j,10) = CO_autocorr(ysub,taul); % AC_loc_tau
         qs(j,11) = taul;
     end
-
-% plot(qs,'o-');
-% input('what do you think?')
-
-fs(i,1:nfeat) = std(qs);
-%     fs(i,nfeat+1:2*nfeat)=std(qs);
-
-% switch meattray
-%     case 'std'
-%         out=std(qs)/std(y);
-%     case 'apen'
-%         out=EN_ApEn(qs,1,0.2); % ApEn of the sliding window measures
-%     case 'ent'
-%         out=DN_kssimp(qs,'entropy'); % distributional entropy
-%     case 'lbq' % lbq test for randomness
-%         [h p] = lbqtest(y);
-%         out=p;
-% end
+    % plot(qs,'o-');
+    % input('what do you think?')
+    
+    % fs(i,1:nfeat) = structfun(@(x)std(x),qs,'UniformOutput',1);
+    % fs(i) = structfun(@(x)std(x),qs,'UniformOutput',0);
+    fs(i,1:nfeat) = std(qs);
 end
 
 % fs contains std of quantities at all different 'scales' (segment lengths)
-
 
 fs = std(fs); % how much does the 'std stationarity' vary over different scales?
 

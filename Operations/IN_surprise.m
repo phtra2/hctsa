@@ -32,7 +32,7 @@ if nargin < 6 || isempty(nits)
 end
 
 %% Course Grain
-yth = SUB_coursegrain(y,ng,cgmeth); % a coarse-grained time series using the numbers 1:ng
+yth = BF_coarsegrain(y,ng,cgmeth); % a coarse-grained time series using the numbers 1:ng
 
 N = length(yth); % will be the same as y, for 'quantile', and 'updown'
 
@@ -76,14 +76,16 @@ for i = 1:length(rs)
             if isempty(inmem2)
                 p = 0;
             else
-                p = length(find(memorydata(inmem2+2) == yth(rs(i))))/length(inmem2);
+                p = sum(memorydata(inmem2+2) == yth(rs(i)))/length(inmem2);
             end
             store(i) = p;
+        otherwise
+            error('Unknwon method ''%s''',whatinf);
     end
 end
 
 % information gained from next observation is log(1/p) = -log(p)
-iz = find(store == 0);
+iz = (store == 0);
 store(iz) = 1; % to avoid log(0) error in next line
 store = -log(store); % transform to surprises/information gains
 store(iz) = 0; % so that log(0) = 0

@@ -8,7 +8,7 @@ function out = TSTL_corrsum(y,Nref,r,thwin,nbins,embedparams,dotwo)
 % thwin: number of samples to exclude before and after each reference index
 % (~ Theiler window)
 % nbins: number of partitioned bins
-% embedparams: embedding parameters to feed benembed.m for embedding the
+% embedparams: embedding parameters to feed BF_embed.m for embedding the
 % signal in the form {tau,m}
 % dotwo: if this is set to 2, will use corrsum2 instead of corrsum, in which
 % case n specifies the number of pairs per bin. Default is 1, i.e., to use
@@ -65,7 +65,7 @@ end
 
 %% Embed the signal
 % convert to embedded signal object for TSTOOL
-s = benembed(y,embedparams{1},embedparams{2},1);
+s = BF_embed(y,embedparams{1},embedparams{2},1);
 
 if ~strcmp(class(s),'signal') && isnan(s); % embedding failed
     error('Embedding failed')
@@ -89,17 +89,16 @@ elseif dotwo == 2 % use corrsum2
 end
 
 if ~isempty(me) && strcmp(me.message,'Maximal search radius must be greater than starting radius')
-    disp('Max search radius less than starting radius. Returning NaNs.')
-    out = NaN;
-    return
+    fprintf(1,'Max search radius less than starting radius. Returning NaNs.\n')
+    out = NaN; return
 elseif ~isempty(me) && strcmp(me.message,'Cannot find an interpoint distance greater zero, maybe ill-conditioned data set given')
-    disp('Cannot find an interpoint distance greater than zero. Shit. Returning NaNs.')
-    out = NaN;
-    return
+    fprintf(1,'Cannot find an interpoint distance greater than zero. Returning NaNs.\n')
+    out = NaN; return
 elseif ~isempty(me) && strcmp(me.message,'Reference indices out of range')
-    disp('Reference indicies out of range. Returning NaNs.')
-    out = NaN;
-    return
+    fprintf(1,'Reference indicies out of range. Returning NaNs.\n')
+    out = NaN; return
+else
+    error('Unknown error %s', me.message);
 end
 
 lnr = spacing(rs);
@@ -110,8 +109,9 @@ lnCr = data(rs);
 % keyboard
 
 %% remove any Infs in lnCr
-rgood = find(isfinite(lnCr));
-if isempty(rgood)
+rgood = (isfinite(lnCr));
+if ~any(rgood)
+    fprintf(1,'No good outputs obtained from corrsum\n');
     out = NaN; return
 end
 lnCr = lnCr(rgood);
@@ -128,7 +128,7 @@ out.meanlnCr = mean(lnCr);
 
 
 % fit linear to log-log plot (full range)
-enoughpoints=1;
+enoughpoints = 1;
 try
     [a, stats] = robustfit(lnr,lnCr);
 catch me
@@ -144,7 +144,6 @@ if enoughpoints
     out.robfit_s = stats.s;
     out.robfit_sea1 = stats.se(1);
     out.robfit_sea2 = stats.se(2);
-
 
     fit_lnCr = a(2)*lnr+a(1);
     % hold on;plot(lnr,fit_lnCr,'r');hold off
@@ -167,26 +166,6 @@ end
     
 
 % now non-robust linear fit
-% [p S] = polyfit(lnr',lnCr,1);
-
-
-%     function out = SUB_allNaNs
-%         % return real NaNs
-%         out.robfit_a1 = NaN;
-%         out.robfit_a2 = NaN;
-%         out.robfit_sigrat = NaN;
-%         out.robfit_s = NaN;
-%         out.robfit_sea1 = NaN;
-%         out.robfit_sea2 = NaN;
-%         out.robfitresmeanabs = NaN;
-%         out.robfitresmeansq = NaN;
-%         out.robfitresac1 = NaN;
-%         out.minlnr = NaN;
-%         out.maxlnr = NaN;
-%         out.minlnCr = NaN;
-%         out.maxlnCr = NaN;
-%         out.rangelnCr = NaN;
-%         out.meanlnCr = NaN; 
-%     end
+% [p, S] = polyfit(lnr',lnCr,1);
 
 end

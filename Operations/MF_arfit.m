@@ -18,9 +18,8 @@ if nargin < 4 || isempty(selector)
 end
 
 % Check the ARfit toolbox is installed and in the Matlab path
-myarfit = which('arfit');
-if isempty(myarfit)
-    error('Cannot find the function ''arfit''. Have you installed the ARFIT toolbox?')
+if ~exist('arfit')
+    error('Cannot find the function ''arfit''. Have you installed the ARfit toolbox?')
 end
 
 %% (I) Fit AR model
@@ -79,7 +78,7 @@ out.popt_sbc = find(SBC == min(SBC),1,'first');
 % (iii) How convincing is the minimum?
 % adjacent values
 if out.popt_sbc > 1 && out.popt_sbc < length(SBC);
-    meanaround = mean(abs([SBC(out.popt_sbc-1),SBC(out.popt_sbc+1)]));
+    meanaround = mean(abs([SBC(out.popt_sbc-1), SBC(out.popt_sbc+1)]));
 elseif out.popt_sbc == 1
     meanaround = abs(SBC(out.popt_sbc+1)); % just the next value
 elseif out.popt_sbc == length(SBC) % really an else
@@ -88,7 +87,6 @@ else
     error('Weird error!');
 end
 out.aroundmin_sbc = abs(min(SBC))/meanaround;
-
 
 % (5) Aikake's Final Prediction Error (FPE)
 % (i) Return all

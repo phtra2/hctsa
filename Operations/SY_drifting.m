@@ -1,6 +1,5 @@
 function out = SY_drifting(y,howl,l)
-
-%> From a MATLAB forum:
+% A function inspired by this bit of advice from a MATLAB forum:
 %> http://www.mathworks.de/matlabcentral/newsreader/view_thread/136539
 %> It seems to me that you are looking for a measure for a drifting mean.
 %> If so, this is what I would try:
@@ -13,12 +12,14 @@ function out = SY_drifting(y,howl,l)
 %>   with the mean variance of the frames.
 %> 
 %> Rune
+%
+% Ben Fulcher, 2009
 
 % INPUTS:
 % howl can be either 'fix' (this given length; for l) or 'num' (this number
 % of windows)
 
-N = length(y);
+N = length(y); % length of the input time series
 
 % Check inputs
 if strcmp(howl,'num')
@@ -30,10 +31,9 @@ else
 end
 
 % ++BF 19/3/2010
-if N<l % doesn't make sense to split into more windows than there are data points
-    disp('Time Series too short')
-    out = NaN;
-    return
+if N < l % doesn't make sense to split into more windows than there are data points
+    fprintf(1,'Time Series (N = %u < l = %u) is too short for this operation\n',N,l)
+    out = NaN; return
 end
 
 % Get going
@@ -54,6 +54,5 @@ out.min = minmean/meanvar;
 out.mean = meanmean/meanvar;
 out.meanmaxmin = (out.max+out.min)/2;
 out.meanabsmaxmin = (abs(out.max)+abs(out.min))/2;
-
 
 end

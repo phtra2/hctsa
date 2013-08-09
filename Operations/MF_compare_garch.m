@@ -7,19 +7,17 @@ function out = MF_compare_garch(y,preproc,pr,qr)
 
 
 %% Inputs
-
 if nargin < 2 || isempty(preproc)
     preproc = 'ar'; % do the preprocessing that maximizes ar(2) whiteness
 end
 
 % GARCH parameters, p & q
 if nargin < 3 || isempty(pr)
-    pr = 1:4; %GARCH(1:4,qr)
+    pr = (1:4); % i.e., GARCH(1:4,qr)
 end
 if nargin < 4 || isempty(qr)
-    qr = 1:4; % GARCH(pr,1:4);
+    qr = (1:4); % i.e., GARCH(pr,1:4);
 end
-
 
 %% (1) Data preprocessing
 y0 = y; % the original, unprocessed time series
@@ -33,12 +31,14 @@ switch preproc
         % of an AR2 model to the processed time series.
         % has to beat doing nothing by 5% (error)
         % No spectral methods allowed...
-        [ypp, best] = benpp(y,'ar',2,0.05,0);
+        [ypp, best] = BF_preproc(y,'ar',2,0.05,0);
         eval(sprintf('y = ypp.%s;',best));
         fprintf(1,'Proprocessed the time series according to AR(2) criterion using %s\n',best);
+    otherwise
+        error('Unknwon preprocessing setting ''%s''',preproc);
 end
 
-y = benzscore(y); % make sure the time series is z-scored
+y = BF_zscore(y); % make sure the time series is z-scored
 N = length(y); % could be different to original (e.g., if chose a differencing above)
 
 % Now have the preprocessed time series saved over y.
@@ -70,11 +70,11 @@ N = length(y); % could be different to original (e.g., if chose a differencing a
 % (iii) Correlation in time series: autocorrelation
 % autocorrs_y = CO_autocorr(y,1:20);
 % autocorrs_var = CO_autocorr(y.^2,1:20);
-[ACF_y,Lags_acf_y,bounds_acf_y] = autocorr(y,20,[],[]);
-[ACF_var_y,Lags_acf_var_y,bounds_acf_var_y] = autocorr(y.^2,20,[],[]);
+[ACF_y, Lags_acf_y, bounds_acf_y] = autocorr(y,20,[],[]);
+[ACF_var_y, Lags_acf_var_y, bounds_acf_var_y] = autocorr(y.^2,20,[],[]);
 
 % (iv) Partial autocorrelation function: PACF
-[PACF_y,Lags_pacf_y,bounds_pacf_y] = parcorr(y,20,[],[]);
+[PACF_y, Lags_pacf_y, bounds_pacf_y] = parcorr(y,20,[],[]);
 
 
 %% (3) Create an appropriate GARCH model

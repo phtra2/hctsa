@@ -10,7 +10,7 @@ function out = TISEAN_nstat_z(y,nseg,embedparams)
 % Inputs:
 % y: the column of time series data
 % nseg: number of subsegments to divide the data into
-% embedparams: embedding parameters in usual format for benembed
+% embedparams: embedding parameters in usual format for BF_embed
 
 % Ben Fulcher 17/11/2009
 
@@ -27,7 +27,7 @@ if nargin < 3
     embedparams = {1,3};
     fprintf(1,'Using default embedding using tau = 1 and m = 3\n')
 end
-tm = benembed(y,embedparams{1},embedparams{2},2);
+tm = BF_embed(y,embedparams{1},embedparams{2},2);
 
 %% Write the file
 tnow = datestr(now,'yyyymmdd_HHMMSS_FFF');
@@ -50,14 +50,14 @@ end
 [~, res] = system(sprintf('nstat_z -#%u -d%u -m%u %s',nseg,tm(1),tm(2),fn));
 % [~, res] = system(sprintf('nstat_z -#' num2str(nseg) ' -d' num2str(tm(1)) ' -m' num2str(tm(2)) ' ' fn]);
 delete(fn) % remove the temporary file fn
-if isempty(res), error('Call to TISEAN failed. Exiting'), end
+if isempty(res), error('Call to TISEAN function ''nstat_z'' failed.'), end
 
 
 %% Read the input
 s = textscan(res,'%[^\n]'); s = s{1};
 wi = strmatch('Writing to stdout',s);
 if isempty(wi)
-    error('TISEAN routine nstata_z didn''t return what I expected...');
+    error('TISEAN routine ''nstat_z'' didn''t return what I expected...');
 end
 s = s(wi+1:end);
 
@@ -92,7 +92,7 @@ out.range = range(xperr(:));
 % minimum prediction error not on diagonal
 lowertri = tril(xperr,-1); lowertri = lowertri(lowertri>0);
 uppertri = triu(xperr,1); uppertri = uppertri(uppertri>0);
-offdiag = [lowertri;uppertri];
+offdiag = [lowertri; uppertri];
 if isempty(lowertri)
     out.minlower = NaN;
 else

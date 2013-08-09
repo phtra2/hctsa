@@ -15,12 +15,12 @@ function out = TSTL_acp(y,tau,past,maxdelay,maxdim,nref)
 try
     s = signal(y);
 catch
-    error('Error running ''signal'' on the input time series -- have you installed TSTOOL?')
+    error('Error running ''signal'' on the input time series -- has TSTOOL been installed?')
 end
 if ~strcmp(class(s),'signal')
     error('Error making a signal class of the input time series')
 end
-N = length(y);
+N = length(y); % length of the time series
 
 %% Check inputs
 % (*) tau
@@ -28,7 +28,7 @@ if nargin < 2
     tau = 'ac'; % use first zero-crossing of autocorrelation function as default
 end
 if strcmp(tau,'mi')
-    tau = CO_fmmi(y);
+    tau = CO_firstmin(y,'mi');
 elseif strcmp(tau,'ac')
     tau = CO_fzcac(y);
 end
@@ -86,7 +86,7 @@ iqracpf = iqr(acpf); % iqr vector of length maxdim
 dmacpf = diff(macpf);
 out.mmacpfdiff = mean(abs(dmacpf));
 out.stdmacpfdiff = std(abs(dmacpf));
-out.propdecmacpf = length(find(dmacpf<0))/length(dmacpf);
+out.propdecmacpf = sum(dmacpf < 0)/length(dmacpf);
 
 for i = 1:maxdim-1
     % give proportion drop at each increase in m

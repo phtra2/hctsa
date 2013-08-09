@@ -27,22 +27,23 @@ end
 
 % 4) Embedding parameters
 if nargin < 5 || isempty(embedparams)
-    embedparams={'ac','cao'};
-    disp('using default embedding using autocorrelation and cao')
+    embedparams = {'ac','cao'};
+    fprintf(1,'Using default time-delay embedding using autocorrelation and cao\n')
 else
-    if length(embedparams)~=2
-        disp('given embedding parameters incorrectly formatted -- need {tau,m}')
+    if length(embedparams) ~= 2
+        error('Embedding parameters are incorrectly formatted, we need {tau,m}')
     end
 end
 
 %% Embed the signal
 % convert to embedded signal object for TSTOOL
 
-s = benembed(y,embedparams{1},embedparams{2},1);
+s = BF_embed(y,embedparams{1},embedparams{2},1);
 
 if ~strcmp(class(s),'signal') && isnan(s); % embedding failed
-    out = NaN;
-    return
+    error('Embedding failed')
+    % out = NaN;
+    % return
 end
 
 
