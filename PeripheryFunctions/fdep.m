@@ -3706,7 +3706,7 @@ function	[opt,par]=DETAB_get_par(otmpl,varargin)
 		~isspace(opt.c.val)
 		par.tc=opt.c.val;
 	else
-		par.tc=char(166);	% <¦>
+		par.tc=char(166);	% <Â¦>
 	end
 		par.uh=[];
 end
