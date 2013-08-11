@@ -53,9 +53,6 @@
 function out = TSTL_predict(y, plen, NNR, stepsize, pmode, embedparams)
 % Ben Fulcher, November 2009
 
-
-doplot = 0;
-
 %% Foreplay
 doplot = 0; % plot outputs to figure (e.g., for debugging)
 N = length(y); % time-series length
@@ -98,7 +95,6 @@ if iscell(embedparams)
 elseif embedparams == 0
     s = signal(y);
 end
-% convert the time series to a signal class for use with TSTOOL methods
 
 if ~strcmp(class(s),'signal')
     out = NaN; return
@@ -120,7 +116,7 @@ catch
     error('TSTOOL''s predict function didn''t run correctly')
 end
 
-y_pred = data(rs); % convert signal back to vector data
+y_pred = data(rs);
 y_pred1 = y_pred(:,1); % for this embedding dimension (?)
 
 if doplot
@@ -205,7 +201,6 @@ out.fracres05 = fracresfn(0.5); %sum(abs(res)<0.5)/Nlag;
 % near a real point in the time series
 % this could be done using the closest neighbour of the simulation to the
 % real time series
-
 
 % Could compare different dimensions rather than just the first... find the
 % best... etc.
