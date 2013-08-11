@@ -106,7 +106,7 @@ if nnew > 0 % some new dependent subsidiary operation files need to be added to 
         fprintf(1,'%s\n',allmodules{fisnew(i)})
     end
     input('ok??')
-    esc = @sqlescapestring; % inline function to add escape strings to format mySQL queries
+    esc = @RA_sqlescapestring; % inline function to add escape strings to format mySQL queries
     for i = 1:nnew
         InsertString = sprintf('INSERT INTO OperationCode (CodeName, IsSubsidiary, fdepDone) VALUES (''%s'',1,0)',esc(allmodules{fisnew(i)}));
         [~,emsg] = mysql_dbexecute(dbc,InsertString);
