@@ -1,4 +1,4 @@
-% SB_coarsegrain
+% SB_CoarseGrain
 % 
 % Coarse-grains the continuous time series to a discrete alphabet
 % by a given method.
@@ -33,7 +33,7 @@
 % this program.  If not, see <http://www.gnu.org/licenses/>.
 % ------------------------------------------------------------------------------
 
-function yth = SB_coarsegrain(y,howtocg,ng)
+function yth = SB_CoarseGrain(y,howtocg,ng)
 % Ben Fulcher, September 2009
 
 % Quantile puts an equal number into each bin
