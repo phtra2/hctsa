@@ -146,12 +146,11 @@ end
 SQL_add_chunked(dbc,'INSERT INTO OperationCodeLinks (c_id_up, c_id_down) VALUES',addcell); % add them all in chunks
 fprintf(1,'Added %u new links between operation code files to %s\n',length(addcell),dbname)
 
-
 %% ASSIGN TOOLBOXES/CodeSources
 % CodeSource table
 % CodeSourceLink table
 % First we can add the Matlab toolboxes found by fdep
-distinct_tb = unique(vertcat(toolboxes{:})); % all toolboxes used by the current set of operations
+distinct_tb = unique(vertcat(toolboxes{~isempty(toolboxes)})); % all toolboxes used by the current set of operations
 if ~isempty(distinct_tb) % some toolboxes registered -- check if they're new
     % find new ones:
     codesourcenames = mysql_dbquery(dbc,'SELECT Name FROM CodeSource');
@@ -207,21 +206,24 @@ for i = 1:nfiles
     else
         nextloc = hier_dir{here+1};
         switch nextloc
-        case 'Operations'
-            % Code files in Operations directory are assigned to a source 'hctsa'
-            addsource{i} = 'hctsa';
-            fprintf(1,'%s is in the Operations directory of HCTSA\n',filenames{i})
-        case 'PeripheryFunction'
-            % Code files in PeripheryFunctions are assigned to a source 'hctsa-periphery'
-            addsource{i} = 'hctsa-periphery';
-            fprintf(1,'%s is in the PeripheryFunctions directory of HCTSA\n',filenames{i})
-        case 'Toolboxes'
-            % Code files in Toolboxes/xxx/ are assigned to a source 'xxx'
-            thetoolbox = hier_dir{here+2};
-            addsource{i} = thetoolbox; % the name of the directory
-            fprintf(1,'%s is in the Toolbox directory %s of HCTSA\n',filenames{i},thetoolbox)
-        otherwise % unknown place
-            addsource{i} = ''; % we don't know where it is
+            case 'Operations'
+                % Code files in Operations directory are assigned to a source 'hctsa'
+                addsource{i} = 'hctsa';
+                fprintf(1,'%s is in the Operations directory of HCTSA\n',filenames{i})
+                
+            case 'PeripheryFunction'
+                % Code files in PeripheryFunctions are assigned to a source 'hctsa-periphery'
+                addsource{i} = 'hctsa-periphery';
+                fprintf(1,'%s is in the PeripheryFunctions directory of HCTSA\n',filenames{i})
+                
+            case 'Toolboxes'
+                % Code files in Toolboxes/xxx/ are assigned to a source 'xxx'
+                thetoolbox = hier_dir{here+2};
+                addsource{i} = thetoolbox; % the name of the directory
+                fprintf(1,'%s is in the Toolbox directory %s of HCTSA\n',filenames{i},thetoolbox)
+                
+            otherwise % unknown place
+                addsource{i} = ''; % we don't know where it is
         end
     end
 end
@@ -262,7 +264,7 @@ fprintf(1,'Added %u new links between operation code files and directory-derived
 
 
 % Note the files analyzed using the fdepDone tag in OperationCode table
-UpdateString = sprintf('UPDATE OperationCode SET fdepDone = 1 WHERE c_id IN (%s)',bencat(cids_anal(fdepworked))); % the c_ids for which fdep worked
+UpdateString = sprintf('UPDATE OperationCode SET fdepDone = 1 WHERE c_id IN (%s)',BF_cat(cids_anal(fdepworked))); % the c_ids for which fdep worked
 [~,emsg] = mysql_dbexecute(dbc,UpdateString);
 
 % Update the Ncodes count in CodeSource by counting references in the linking table
