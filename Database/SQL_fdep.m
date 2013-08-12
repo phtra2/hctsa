@@ -128,8 +128,8 @@ codenames_db = qrc(:,2);
 
 addcell = {};
 for i = 1:nfiles
-    % look at the modules and add elements
-    if ~isempty(modules{i}) % relies on external code
+    % Look at the modules and add elements
+    if ~isempty(modules{i}) % Relies on external code
         cid_i = cids(strcmp(codenames_db,filenames{i})); % the c_id of file i
         if isempty(cid_i); fprintf(1,'empty at %s\n',filenames{i});
             continue; % (this operation is in the directory but never referenced)
@@ -208,12 +208,12 @@ for i = 1:nfiles
         switch nextloc
             case 'Operations'
                 % Code files in Operations directory are assigned to a source 'hctsa'
-                addsource{i} = 'hctsa';
+                addsource{i} = 'BF-hctsa';
                 fprintf(1,'%s is in the Operations directory of HCTSA\n',filenames{i})
                 
-            case 'PeripheryFunction'
+            case 'PeripheryFunctions'
                 % Code files in PeripheryFunctions are assigned to a source 'hctsa-periphery'
-                addsource{i} = 'hctsa-periphery';
+                addsource{i} = 'BF-periphery';
                 fprintf(1,'%s is in the PeripheryFunctions directory of HCTSA\n',filenames{i})
                 
             case 'Toolboxes'
