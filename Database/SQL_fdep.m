@@ -150,7 +150,7 @@ fprintf(1,'Added %u new links between operation code files to %s\n',length(addce
 % CodeSource table
 % CodeSourceLink table
 % First we can add the Matlab toolboxes found by fdep
-distinct_tb = unique(vertcat(toolboxes{~isempty(toolboxes)})); % all toolboxes used by the current set of operations
+distinct_tb = unique(vertcat(toolboxes{:})); % all toolboxes used by the current set of operations
 if ~isempty(distinct_tb) % some toolboxes registered -- check if they're new
     % find new ones:
     codesourcenames = mysql_dbquery(dbc,'SELECT Name FROM CodeSource');
@@ -220,7 +220,7 @@ for i = 1:nfiles
                 % Code files in Toolboxes/xxx/ are assigned to a source 'xxx'
                 thetoolbox = hier_dir{here+2};
                 addsource{i} = thetoolbox; % the name of the directory
-                fprintf(1,'%s is in the Toolbox directory %s of HCTSA\n',filenames{i},thetoolbox)
+                fprintf(1,'%s is in the Toolbox directory, ''%s'', of HCTSA\n',filenames{i},thetoolbox)
                 
             otherwise % unknown place
                 addsource{i} = ''; % we don't know where it is
